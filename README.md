@@ -1,8 +1,7 @@
 # Ask & Find
 
 Ask & Find is an audio-first hidden-object learning game for children ages 3–5. It
-is a native SwiftUI iPad app designed around listening comprehension, visual
-scanning, object-word association, and gentle feedback.
+runs as a native SwiftUI app on iPadOS 17 or newer.
 
 The child hears one object request at a time and taps the scene to answer. Incorrect
 taps receive calm encouragement. After three misses, the app displays a visual halo
@@ -10,182 +9,137 @@ and hand pointer. A parent-gated dashboard summarizes local usage and success da
 
 ## Current implementation
 
-- Native SwiftUI app targeting iPadOS 17 or newer.
-- Landscape iPad interface.
-- Ten built-in demo scene records.
-- Ten annotated candidate objects per scene using normalized coordinates.
+- Ten built-in demo scenes, each with ten normalized target regions.
 - Up to five objects selected for each play session.
-- One spoken target at a time; no visible object list.
+- One spoken target at a time; no visible target list.
 - Local English speech using `AVSpeechSynthesizer`.
-- Visual hint after three misses and demonstration after five misses.
-- Local SwiftData progress storage.
-- Parent gate, progress dashboard, settings, and progress reset.
-- Unit tests for content validation, selection, hit testing, and parent metrics.
-- No microphone, advertising, analytics, child account, Gemini client, or API key in
-  the iPad application.
+- Gentle miss feedback, visual hint after three misses, demonstration after five.
+- Local SwiftData progress storage and parent dashboard.
+- No microphone, advertising, analytics, child account, Gemini client, or API key.
 
-## Important artwork status
+## Artwork status
 
-The repository does **not** yet contain final PNG, JPEG, or WebP scene artwork. The
-current functional prototype renders simple code-generated backgrounds and emoji
-objects. These demo scenes make gameplay, coordinates, hints, and progress tracking
-testable, but they are not production artwork.
-
-Final release work must replace the demo renderer with ten human-reviewed,
-rights-cleared storybook illustrations and approved narration clips. The content and
-coordinate contracts are already separated so artwork can be replaced without
-rewriting the game rules.
+The repository currently contains no final PNG, JPEG, or WebP artwork. The functional
+prototype renders code-generated backgrounds and emoji objects. These scenes make
+gameplay, coordinate hit-testing, hints, and progress tracking testable, but they are
+not production artwork. Final release work must replace them with reviewed,
+rights-cleared storybook illustrations and approved narration clips.
 
 ## Repository structure
 
 ```text
-SpeechTherapy/
-  App/                 Application entry and navigation state
-  AppShell/            Home, parent gate, dashboard, and settings
-  Core/                Audio, content catalog, and persistence
-  Domain/              Content models, validation, coordinates, selection
-  Features/            Hidden-object gameplay and presentation
-  RuntimeSources/      Corrected source files selected by the final project spec
-  Resources/           iPad application property list
-SpeechTherapyTests/    Unit tests
-docs/                  Product, architecture, content, and implementation designs
-XcodeGenRuntime.yml    Final Xcode project definition
+SpeechTherapy/          SwiftUI app source
+SpeechTherapyTests/     Unit tests
+docs/                   Product and architecture specifications
+XcodeGenRuntime.yml     Xcode project definition to use
 ```
 
-`XcodeGenRuntime.yml` is the project specification to use. The older `project.yml`
-and `XcodeGen.yml` files are retained as design-history drafts and should not be used
-to generate the current app target.
+The older `project.yml` and `XcodeGen.yml` files are design-history drafts. Use
+`XcodeGenRuntime.yml`.
 
 ## Requirements
 
-- A Mac capable of running a current supported version of Xcode.
-- Xcode and its iPadOS SDK.
+- Windows for editing and GitHub operations.
+- A Mac with Xcode for compiling/signing the iPad app.
 - XcodeGen 2.38 or newer.
-- An iPad running iPadOS 17 or newer.
-- An Apple Account signed into Xcode for device signing.
+- iPadOS 17 or newer.
+- An Apple Account signed into Xcode.
 
-Windows can be used to edit the repository and push it to GitHub, but Apple requires
-Xcode on macOS to compile and sign a native iPad app.
+Apple requires Xcode on macOS to compile and sign native iPad apps. Windows cannot
+run this SwiftUI target directly.
 
-## Push from Windows to GitHub
+## Push changes from Windows
 
-The current folder is not yet a Git repository.
-
-### 1. Create the GitHub repository
-
-On GitHub, create a new empty repository, for example `ask-and-find`. Do not add a
-README, `.gitignore`, or license during creation because those files already exist
-locally. Choose public or private visibility as appropriate.
-
-### 2. Open PowerShell in this folder
+This project is already connected to `https://github.com/Taksir/Littlebuddy` on the
+`main` branch. For future changes:
 
 ```powershell
 Set-Location -LiteralPath "D:\Google Drive Mythoss\Artificial Intelligence\local ollama models\SpeechTherapy"
-```
-
-### 3. Initialize and review the local repository
-
-```powershell
-git init
-git add .
 git status
-```
-
-Confirm that `gem_api.txt`, `.env`, key files, build output, and `DerivedData` are not
-listed. The Gemini key currently resides outside this project and must remain there.
-
-### 4. Commit the project
-
-```powershell
-git commit -m "Initial Ask and Find iPad app"
-git branch -M main
-```
-
-If Git asks for your identity first:
-
-```powershell
-git config --global user.name "YOUR NAME"
-git config --global user.email "YOUR_GITHUB_EMAIL"
-git commit -m "Initial Ask and Find iPad app"
-```
-
-### 5. Connect and push
-
-Replace the placeholders with your GitHub username and repository name:
-
-```powershell
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
-git push -u origin main
-```
-
-Git Credential Manager normally opens a browser for GitHub authentication. GitHub
-does not accept an account password for command-line Git operations; use the browser
-sign-in flow or a personal access token if requested.
-
-For later changes:
-
-```powershell
 git add .
 git commit -m "Describe the change"
 git push
 ```
 
-## Build and install from the MacBook
+Before committing, confirm secrets are absent:
 
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
-cd YOUR_REPOSITORY
+```powershell
+git status
+git ls-files | Select-String -Pattern "gem_api|\.env|\.key|\.pem|DerivedData"
 ```
 
-For a private repository, sign in to GitHub when prompted.
+That final command should produce no output. Never copy `gem_api.txt` into this
+repository.
 
-### 2. Install the build tools
+## Install on the MacBook
 
-Install Xcode from the Mac App Store, open it once, and allow it to install required
-components. If Homebrew is installed, install XcodeGen with:
+Clone the repository:
+
+```bash
+git clone https://github.com/Taksir/Littlebuddy.git
+cd Littlebuddy
+```
+
+Install Xcode from the Mac App Store. If Homebrew is installed, install XcodeGen:
 
 ```bash
 brew install xcodegen
 ```
 
-### 3. Generate and open the Xcode project
+Generate and open the Xcode project:
 
 ```bash
 xcodegen generate --spec XcodeGenRuntime.yml
 open AskAndFind.xcodeproj
 ```
 
-### 4. Configure signing
-
 In Xcode:
 
-1. Select the `AskAndFind` project and application target.
+1. Select the `AskAndFind` application target.
 2. Open **Signing & Capabilities**.
 3. Select your Apple Account or Personal Team.
-4. Replace `com.example.askandfind` with a unique bundle identifier such as
-   `com.yourname.askandfind`.
+4. Replace `com.example.askandfind` with a unique bundle identifier.
+5. Connect the iPad by USB and tap **Trust** if prompted.
+6. Select the iPad as the run destination.
+7. Press `Command-R`.
 
-### 5. Install on the iPad
+If Xcode asks for it, enable **Settings → Privacy & Security → Developer Mode** on
+the iPad, restart it, reconnect it, and run again. Run tests with `Command-U`.
 
-1. Connect the iPad to the MacBook with USB and tap **Trust** if prompted.
-2. Select the connected iPad as Xcode's run destination.
-3. Press the Run button or `Command-R`.
-4. If requested, enable **Settings → Privacy & Security → Developer Mode** on the
-   iPad, restart it, reconnect, and run again.
+## How to play on the iPad
 
-Run unit tests with `Command-U` before relying on the build.
+1. Launch **Ask & Find** from the iPad home screen.
+2. Tap **Find Hidden Objects**.
+3. Listen to the caring voice ask for one object, such as “Can you find the bunny?”
+4. Tap the matching object in the scene.
+5. A correct tap produces gentle praise and advances to the next object.
+6. An incorrect tap produces encouragement and lets the child try again.
+7. After the third miss, a glowing halo and hand pointer show where to look.
+8. After five misses, the guide demonstrates the object and moves on so the child
+   never becomes stuck.
+9. Tap the speaker button to hear the current request again.
+10. Tap the home button to leave play.
+
+The app asks for up to five objects in a session. It does not show all target objects
+in a list, so the child must listen and search. Progress is saved locally.
+
+## Parent dashboard
+
+From the home screen, tap **For grown-ups** and complete the arithmetic gate. The
+dashboard shows sessions, active play time, objects completed, first-try success,
+independent success, hints, average attempts, and recent sessions. Settings allow a
+parent to choose 3–5 targets per picture, enable written prompts for co-play, or
+enable reduced movement.
 
 ## Privacy and secrets
 
-- Never copy `gem_api.txt` into this repository.
-- Never add a Gemini or other API key to Swift source, plist files, or GitHub.
-- Progress data remains on the iPad in the current version.
-- The app does not collect child voice, images, identifiers, or location.
-- Production App Store release still requires privacy and Kids Category review.
+- Progress stays on the iPad in this version.
+- No child voice, images, identifiers, location, ads, or analytics are collected.
+- Gemini is not called by the iPad client.
+- Never add an API key to Swift source, plist files, or GitHub.
+- App Store release requires separate privacy and Kids Category review.
 
-## Design documentation
+## Documentation
 
 - [Product and interaction specification](docs/PRODUCT_AND_UX.md)
 - [Software architecture](docs/ARCHITECTURE.md)
@@ -195,5 +149,5 @@ Run unit tests with `Command-U` before relying on the build.
 
 ## License
 
-No open-source license has been selected. Until a license is added, the source is
+No open-source license has been selected. Until one is added, the source is
 copyrighted by its owner and no reuse rights are granted automatically.
