@@ -1,145 +1,107 @@
 # Ask & Find
 
-Ask & Find is an audio-first hidden-object learning game for children ages 3–5. It
-runs as a native SwiftUI app on iPadOS 17 or newer.
+Ask & Find is an audio-first hidden-object learning game for children ages 3–5. The
+child hears one object request at a time, searches the picture, and taps the answer.
+Incorrect taps receive calm encouragement; the third miss reveals a gentle visual
+hint. A parent area summarizes local play and success data.
 
-The child hears one object request at a time and taps the scene to answer. Incorrect
-taps receive calm encouragement. After three misses, the app displays a visual halo
-and hand pointer. A parent-gated dashboard summarizes local usage and success data.
+## Choose how to run it
 
-## Current implementation
+### Directly on an iPad — no Mac required
 
-- Ten built-in demo scenes, each with ten normalized target regions.
-- Up to five objects selected for each play session.
-- One spoken target at a time; no visible target list.
-- Local English speech using `AVSpeechSynthesizer`.
-- Gentle miss feedback, visual hint after three misses, demonstration after five.
-- Local SwiftData progress storage and parent dashboard.
-- No microphone, advertising, analytics, child account, Gemini client, or API key.
+Use the self-contained [AskAndFind.swiftpm](AskAndFind.swiftpm) package with Apple's
+free **Swift Playgrounds** app:
 
-## Artwork status
+1. Install **Swift Playgrounds** from the iPad App Store.
+2. Open `https://github.com/Taksir/Littlebuddy` in Safari.
+3. Choose **Code → Download ZIP**.
+4. Extract the ZIP in the Files app.
+5. Open Swift Playgrounds and tap **Browse**.
+6. Open the extracted repository and select `AskAndFind.swiftpm`.
+7. Wait for compilation, then tap **Run App**.
 
-The repository currently contains no final PNG, JPEG, or WebP artwork. The functional
-prototype renders code-generated backgrounds and emoji objects. These scenes make
-gameplay, coordinate hit-testing, hints, and progress tracking testable, but they are
-not production artwork. Final release work must replace them with reviewed,
-rights-cleared storybook illustrations and approved narration clips.
+This requires iPadOS 17 or newer. It runs full screen inside Swift Playgrounds. See
+[direct iPad setup](IPAD_DIRECT_SETUP.md) for the compact instructions.
 
-## Repository structure
+### Native Xcode build on a Mac
 
-```text
-SpeechTherapy/          SwiftUI app source
-SpeechTherapyTests/     Unit tests
-docs/                   Product and architecture specifications
-XcodeGenRuntime.yml     Xcode project definition to use
-```
-
-The older `project.yml` and `XcodeGen.yml` files are design-history drafts. Use
-`XcodeGenRuntime.yml`.
-
-## Requirements
-
-- Windows for editing and GitHub operations.
-- A Mac with Xcode for compiling/signing the iPad app.
-- XcodeGen 2.38 or newer.
-- iPadOS 17 or newer.
-- An Apple Account signed into Xcode.
-
-Apple requires Xcode on macOS to compile and sign native iPad apps. Windows cannot
-run this SwiftUI target directly.
-
-## Push changes from Windows
-
-This project is already connected to `https://github.com/Taksir/Littlebuddy` on the
-`main` branch. For future changes:
-
-```powershell
-git status
-git add .
-git commit -m "Describe the change"
-git push
-```
-
-Before committing, confirm secrets are absent:
-
-```powershell
-git status
-git ls-files | Select-String -Pattern "gem_api|\.env|\.key|\.pem|DerivedData"
-```
-
-That final command should produce no output. Never copy `gem_api.txt` into this
-repository.
-
-## Install on the MacBook
-
-Clone the repository:
+The original SwiftUI/Xcode source remains available for simulator, device, and later
+App Store work. On a Mac:
 
 ```bash
 git clone https://github.com/Taksir/Littlebuddy.git
 cd Littlebuddy
-```
-
-Install Xcode from the Mac App Store. If Homebrew is installed, install XcodeGen:
-
-```bash
 brew install xcodegen
-```
-
-Generate and open the Xcode project:
-
-```bash
 xcodegen generate --spec XcodeGenRuntime.yml
 open AskAndFind.xcodeproj
 ```
 
-In Xcode:
+In Xcode, select the `AskAndFind` target, choose an Apple signing team, replace the
+placeholder bundle identifier, select an iPad or iPad simulator, and press
+`Command-R`. Run tests with `Command-U`.
 
-1. Select the `AskAndFind` application target.
-2. Open **Signing & Capabilities**.
-3. Select your Apple Account or Personal Team.
-4. Replace `com.example.askandfind` with a unique bundle identifier.
-5. Connect the iPad by USB and tap **Trust** if prompted.
-6. Select the iPad as the run destination.
-7. Press `Command-R`.
+## How to play
 
-If Xcode asks for it, enable **Settings → Privacy & Security → Developer Mode** on
-the iPad, restart it, reconnect it, and run again. Run tests with `Command-U`.
+1. Launch the app and tap **Find Hidden Objects**.
+2. Listen to the spoken request, such as “Can you find the bunny?”
+3. Tap the matching object.
+4. A correct tap gives gentle praise and advances to the next object.
+5. An incorrect tap gives encouragement and lets the child try again.
+6. After the third miss, a glowing halo and hand pointer show where to look.
+7. After five misses, the guide demonstrates the object and moves on.
+8. Tap the speaker button to repeat the current request.
 
-## How to play on the iPad
+Each session asks for 3–5 objects, one at a time. The app never displays the full
+target list.
 
-1. Launch **Ask & Find** from the iPad home screen.
-2. Tap **Find Hidden Objects**.
-3. Listen to the caring voice ask for one object, such as “Can you find the bunny?”
-4. Tap the matching object in the scene.
-5. A correct tap produces gentle praise and advances to the next object.
-6. An incorrect tap produces encouragement and lets the child try again.
-7. After the third miss, a glowing halo and hand pointer show where to look.
-8. After five misses, the guide demonstrates the object and moves on so the child
-   never becomes stuck.
-9. Tap the speaker button to hear the current request again.
-10. Tap the home button to leave play.
+## Parent area
 
-The app asks for up to five objects in a session. It does not show all target objects
-in a list, so the child must listen and search. Progress is saved locally.
+Tap **For grown-ups** and complete the arithmetic gate. The dashboard shows sessions,
+active time, completed objects, independent success, hints, attempts, and recent
+play. Parents can choose 3–5 targets, enable written prompts for co-play, enable
+reduced movement, or reset local progress.
 
-## Parent dashboard
+## Current implementation
 
-From the home screen, tap **For grown-ups** and complete the arithmetic gate. The
-dashboard shows sessions, active play time, objects completed, first-try success,
-independent success, hints, average attempts, and recent sessions. Settings allow a
-parent to choose 3–5 targets per picture, enable written prompts for co-play, or
-enable reduced movement.
+- Ten demo scenes with ten normalized hit regions per scene.
+- One audio-requested target at a time.
+- Gentle feedback, visual hint after three misses, demonstration after five.
+- Local progress storage and parent summaries.
+- No microphone, advertising, analytics, child account, Gemini client, or API key.
+- Native Xcode project plus a self-contained Swift Playgrounds package.
+
+## Artwork status
+
+The repository does not yet contain final PNG, JPEG, or WebP scene artwork. The
+prototype renders code-generated backgrounds and emoji objects. These functional
+scenes test gameplay, coordinates, speech, hints, and progress tracking, but final
+release work must replace them with reviewed, rights-cleared storybook illustrations
+and approved narration.
+
+## Repository structure
+
+```text
+AskAndFind.swiftpm/     Direct-iPad Swift Playgrounds app
+SpeechTherapy/          Native SwiftUI/Xcode source
+SpeechTherapyTests/     Native target unit tests
+docs/                   Product and architecture specifications
+XcodeGenRuntime.yml     Xcode project definition to use on a Mac
+```
+
+The older `project.yml` and `XcodeGen.yml` files are design-history drafts. Use
+`XcodeGenRuntime.yml` for the native Mac/Xcode path.
 
 ## Privacy and secrets
 
-- Progress stays on the iPad in this version.
+- Progress stays locally on the device in the current versions.
 - No child voice, images, identifiers, location, ads, or analytics are collected.
-- Gemini is not called by the iPad client.
-- Never add an API key to Swift source, plist files, or GitHub.
+- Gemini is not called by either app client.
+- Never add an API key to Swift source, package manifests, plist files, or GitHub.
 - App Store release requires separate privacy and Kids Category review.
 
 ## Documentation
 
+- [Direct iPad setup](IPAD_DIRECT_SETUP.md)
 - [Product and interaction specification](docs/PRODUCT_AND_UX.md)
 - [Software architecture](docs/ARCHITECTURE.md)
 - [Content and annotation pipeline](docs/CONTENT_PIPELINE.md)

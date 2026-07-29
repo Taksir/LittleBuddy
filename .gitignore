@@ -4,6 +4,10 @@ build/
 *.xcuserstate
 xcuserdata/
 
+# Swift Package Manager / Swift Playgrounds generated artifacts
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
 # Secrets and local authoring outputs
 gem_api.txt
 *.key
