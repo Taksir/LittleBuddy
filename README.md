@@ -54,7 +54,6 @@ This project is already connected to `https://github.com/Taksir/Littlebuddy` on 
 `main` branch. For future changes:
 
 ```powershell
-Set-Location -LiteralPath "D:\Google Drive Mythoss\Artificial Intelligence\local ollama models\SpeechTherapy"
 git status
 git add .
 git commit -m "Describe the change"
