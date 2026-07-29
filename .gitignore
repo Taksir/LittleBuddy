@@ -1,0 +1,12 @@
+# Xcode
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+
+# Secrets and local authoring outputs
+gem_api.txt
+*.key
+*.pem
+.env
+content-tools/staging/
