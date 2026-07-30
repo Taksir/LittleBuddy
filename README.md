@@ -45,20 +45,19 @@ demonstrates its location.
 
 ### Story Time
 
-Story Time contains **The Cowboy Who Cried Tiger**:
+Story Time opens a child-friendly library containing:
 
-- cover plus ten narrated pages;
-- forward and backward swipe or arrow navigation;
-- replayable offline narration using the caring English voice fallback;
-- four picture-based questions after the story;
-- specific spoken correction after a wrong choice;
-- local story-session progress in the parent view.
+- The Cowboy Who Cried Tiger
+- The Tortoise and the Hare
+- The Lion and the Mouse
+- The Fox and the Grapes
 
-The story's tiger consequence is narrated but shown off-screen without graphic
-imagery. The package includes a cover and ten full-resolution cartoon storybook
-illustrations under
-AskAndFind.swiftpm/Sources/AppModule/Resources/Stories/cowboy-who-cried-tiger/v1/.
-The built-in drawing fallback remains only as protection if an asset is ever missing.
+Each book contains a cover, ten narrated pages, reversible page navigation, replayable
+offline English narration, and four picture-based review questions. Wrong answers
+receive a gentle story-specific correction, and progress is stored locally by story.
+
+The full-resolution cartoon storybook illustrations are bundled under
+AskAndFind.swiftpm/Sources/AppModule/Resources/Stories/<story-id>/v1/.
 
 ## Parent area
 
@@ -83,8 +82,9 @@ questions, attempts, and recent play. Reset clears both local activity stores.
 
 Useful Story Time references:
 
-- [Story Time design](docs/STORY_TIME_DESIGN.md)
-- [Luna xHigh engineering brief](docs/STORY_TIME_LUNA_XHIGH_BRIEF.md)
+- [Three new stories design](docs/THREE_NEW_STORIES_DESIGN.md)
+- [Luna xHigh engineering brief](docs/THREE_NEW_STORIES_LUNA_XHIGH_BRIEF.md)
+- [Focused verification handoff](docs/THREE_NEW_STORIES_VERIFICATION_HANDOFF.md)
 - [Direct iPad setup](IPAD_DIRECT_SETUP.md)
 
 No open-source license has been selected. Until one is added, the source is

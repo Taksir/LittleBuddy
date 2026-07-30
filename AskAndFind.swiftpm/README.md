@@ -19,14 +19,15 @@ download.
 - **Find Hidden Objects**: audio-first object finding with gentle miss feedback,
   temporary object-picture help after three misses, and precise demonstration after
   five misses.
-- **Story Time**: cover plus ten narrated pages for The Cowboy Who Cried Tiger,
-  reversible page navigation, replayable narration, and four picture-based review
-  questions with spoken corrections.
-
-Story Time includes a full set of eleven 1536 x 1024 storybook illustrations under
-Sources/AppModule/Resources/Stories/cowboy-who-cried-tiger/v1/: cover.png and
-page-01.png through page-10.png. SwiftUI continues to render all story text so the
-artwork remains reusable and free of baked-in labels.
+- **Story Time**: a four-book library with The Cowboy Who Cried Tiger, The Tortoise
+  and the Hare, The Lion and the Mouse, and The Fox and the Grapes.
+- Every story has a cover, ten narrated pages, forward/back navigation, replayable
+  English narration, and four picture-based review questions with specific spoken
+  correction.
+- Story Time assets are bundled offline under
+  Sources/AppModule/Resources/Stories/<story-id>/v1/ as cover.png and
+  page-01.png through page-10.png.
 
 Progress is stored locally in separate Hidden Objects and Story Time stores. The
-parent dashboard can reset both stores together.
+parent dashboard resolves each story title from its saved story ID and can reset
+both stores together.

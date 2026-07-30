@@ -44,7 +44,7 @@ struct ActivityHomeView: View {
                         }
                         .buttonStyle(ActivityCardButtonStyle())
 
-                        Button { appState.route = .story(UUID()) } label: {
+                        Button { appState.route = .storyLibrary } label: {
                             ActivityCard(
                                 title: "Story Time",
                                 subtitle: "Listen and remember!",
@@ -112,18 +112,104 @@ private struct ActivityCardButtonStyle: ButtonStyle {
     }
 }
 
+struct StoryLibraryView: View {
+    @EnvironmentObject private var appState: AppState
+
+    private let books = StoryCatalog.allBooks
+
+    var body: some View {
+        ZStack {
+            Color(red: 0.94, green: 0.97, blue: 0.90)
+                .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 18) {
+                    HStack {
+                        Button { appState.route = .home } label: {
+                            Image(systemName: "house.fill")
+                                .font(.title2.bold())
+                                .frame(width: 64, height: 56)
+                        }
+                        .buttonStyle(StoryTimeView.ChildControlStyle())
+
+                        Spacer()
+                        Text("Story Time")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
+                        Spacer()
+
+                        Color.clear.frame(width: 64, height: 56)
+                    }
+                    .padding(.horizontal, 22)
+
+                    Text("Choose a story to hear")
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
+
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: 18),
+                            GridItem(.flexible(), spacing: 18)
+                        ],
+                        spacing: 18
+                    ) {
+                        ForEach(books) { book in
+                            Button {
+                                appState.route = .story(storyID: book.id, sessionToken: UUID())
+                            } label: {
+                                StoryLibraryCard(book: book)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .frame(maxWidth: 1100)
+                    .padding(.horizontal, 22)
+                }
+                .padding(.vertical, 18)
+            }
+        }
+    }
+}
+
+private struct StoryLibraryCard: View {
+    let book: StoryBook
+
+    var body: some View {
+        VStack(spacing: 10) {
+            StoryCoverArtwork(book: book)
+                .frame(maxWidth: .infinity)
+                .frame(height: 210)
+                .clipShape(RoundedRectangle(cornerRadius: 22))
+
+            Text(book.title)
+                .font(.system(size: 25, weight: .bold, design: .rounded))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 8)
+                .padding(.bottom, 8)
+        }
+        .padding(10)
+        .background(.white, in: RoundedRectangle(cornerRadius: 28))
+        .overlay {
+            RoundedRectangle(cornerRadius: 28)
+                .stroke(Color.white.opacity(0.9), lineWidth: 3)
+        }
+        .shadow(color: .black.opacity(0.13), radius: 10, y: 5)
+    }
+}
+
 struct StoryTimeView: View {
     @EnvironmentObject private var appState: AppState
     @Environment(.accessibilityReduceMotion) private var systemReduceMotion
-    @EnvironmentObject private var storyProgress: StoryProgressStore
     @StateObject private var coordinator: StoryTimeCoordinator
 
-    init(sessionToken: UUID, progress: StoryProgressStore) {
-        _ = sessionToken
+    init(book: StoryBook, sessionToken: UUID, progress: StoryProgressStore) {
         _coordinator = StateObject(
             wrappedValue: StoryTimeCoordinator(
-                book: StoryCatalog.cowboyWhoCriedTiger,
-                progress: progress
+                book: book,
+                progress: progress,
+                sessionToken: sessionToken
             )
         )
     }
@@ -160,7 +246,7 @@ struct StoryTimeView: View {
             topBar(title: "Story Time")
 
             Spacer(minLength: 8)
-            StoryCoverArtwork(assetName: coordinator.book.coverAsset, title: coordinator.book.title)
+            StoryCoverArtwork(book: coordinator.book)
                 .frame(maxWidth: 620, maxHeight: 340)
                 .clipShape(RoundedRectangle(cornerRadius: 30))
                 .overlay {
@@ -177,7 +263,7 @@ struct StoryTimeView: View {
             HStack(spacing: 16) {
                 Button("Read") { coordinator.startReading() }
                     .buttonStyle(StoryPrimaryButtonStyle())
-                Button("Home") { appState.route = .home }
+                Button("Library") { appState.route = .storyLibrary }
                     .buttonStyle(.bordered)
                     .font(.title3.bold())
             }
@@ -187,75 +273,83 @@ struct StoryTimeView: View {
     }
 
     private var storyReader: some View {
-        VStack(spacing: 8) {
-            topBar(title: coordinator.book.title, showsReplay: true) {
-                coordinator.replayCurrentPage()
-            }
+        Group {
+            if let page = coordinator.currentPage {
+                VStack(spacing: 8) {
+                    topBar(title: coordinator.book.title, showsReplay: true) {
+                        coordinator.replayCurrentPage()
+                    }
 
-            StoryPageArtwork(page: coordinator.currentPage)
-                .frame(maxWidth: 1120)
-                .frame(maxHeight: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: 24))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(.white, lineWidth: 5)
-                }
-                .shadow(color: .black.opacity(0.15), radius: 10, y: 5)
-                .contentShape(Rectangle())
-                .gesture(
-                    DragGesture(minimumDistance: 40).onEnded { value in
-                        guard abs(value.translation.width) > abs(value.translation.height) else { return }
-                        if value.translation.width < 0 {
-                            coordinator.goForward()
-                        } else {
-                            coordinator.goBack()
+                    StoryPageArtwork(page: page, book: coordinator.book)
+                        .frame(maxWidth: 1120)
+                        .frame(maxHeight: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 24)
+                                .stroke(.white, lineWidth: 5)
                         }
-                    }
-                )
+                        .shadow(color: .black.opacity(0.15), radius: 10, y: 5)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture(minimumDistance: 40).onEnded { value in
+                                guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                                if value.translation.width < 0 {
+                                    coordinator.goForward()
+                                } else {
+                                    coordinator.goBack()
+                                }
+                            }
+                        )
 
-            VStack(spacing: 8) {
-                Text(coordinator.currentPage.displayedText)
-                    .font(.system(size: 24, weight: .medium, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
-                    .frame(maxWidth: 1000)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 18))
+                    VStack(spacing: 8) {
+                        Text(page.displayedText)
+                            .font(.system(size: 24, weight: .medium, design: .rounded))
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
+                            .frame(maxWidth: 1000)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(.white, in: RoundedRectangle(cornerRadius: 18))
 
-                HStack(spacing: 18) {
-                    Button { coordinator.goBack() } label: {
-                        Image(systemName: "arrow.left.circle.fill")
-                            .font(.system(size: 58))
-                    }
-                    .disabled(!coordinator.canGoBack)
+                        HStack(spacing: 18) {
+                            Button { coordinator.goBack() } label: {
+                                Image(systemName: "arrow.left.circle.fill")
+                                    .font(.system(size: 58))
+                            }
+                            .disabled(!coordinator.canGoBack)
 
-                    StoryPageDots(
-                        count: coordinator.book.pages.count,
-                        selectedIndex: coordinator.pageIndex
-                    )
+                            StoryPageDots(
+                                count: coordinator.book.pages.count,
+                                selectedIndex: coordinator.pageIndex
+                            )
 
-                    Button { coordinator.goForward() } label: {
-                        Image(systemName: coordinator.pageIndex == coordinator.book.pages.count - 1
-                              ? "checkmark.circle.fill"
-                              : "arrow.right.circle.fill")
-                            .font(.system(size: 58))
+                            Button { coordinator.goForward() } label: {
+                                Image(systemName: coordinator.pageIndex == coordinator.book.pages.count - 1
+                                      ? "checkmark.circle.fill"
+                                      : "arrow.right.circle.fill")
+                                    .font(.system(size: 58))
+                            }
+                        }
+                        .foregroundStyle(Color(red: 0.10, green: 0.32, blue: 0.58))
+                        .padding(.bottom, 4)
                     }
                 }
-                .foregroundStyle(Color(red: 0.10, green: 0.32, blue: 0.58))
-                .padding(.bottom, 4)
+                .padding(.horizontal, 22)
+                .padding(.vertical, 12)
+            } else {
+                malformedStory
             }
         }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 12)
     }
 
     private var storyComplete: some View {
         VStack(spacing: 18) {
             topBar(title: "The End")
-            StoryPageArtwork(page: coordinator.book.pages[9])
-                .frame(maxWidth: 720, maxHeight: 370)
-                .clipShape(RoundedRectangle(cornerRadius: 26))
+            if let page = coordinator.book.pages.last {
+                StoryPageArtwork(page: page, book: coordinator.book)
+                    .frame(maxWidth: 720, maxHeight: 370)
+                    .clipShape(RoundedRectangle(cornerRadius: 26))
+            }
             Text("You listened to the whole story.")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
                 .multilineTextAlignment(.center)
@@ -267,7 +361,7 @@ struct StoryTimeView: View {
                     coordinator.startAgain()
                 }
                 .buttonStyle(.bordered)
-                Button("Home") { appState.route = .home }
+                Button("Library") { appState.route = .storyLibrary }
                     .buttonStyle(.bordered)
             }
             .font(.title3.bold())
@@ -278,10 +372,12 @@ struct StoryTimeView: View {
     private var reviewIntro: some View {
         VStack(spacing: 20) {
             topBar(title: "Think About the Story")
-            StoryPageArtwork(page: coordinator.book.pages[9])
-                .frame(maxWidth: 720, maxHeight: 360)
-                .clipShape(RoundedRectangle(cornerRadius: 26))
-            Text("Let's remember what happened.")
+            if let page = coordinator.book.pages.last {
+                StoryPageArtwork(page: page, book: coordinator.book)
+                    .frame(maxWidth: 720, maxHeight: 360)
+                    .clipShape(RoundedRectangle(cornerRadius: 26))
+            }
+            Text("Let’s remember what happened.")
                 .font(.system(size: 34, weight: .bold, design: .rounded))
                 .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
             ProgressView()
@@ -291,61 +387,66 @@ struct StoryTimeView: View {
     }
 
     private var storyReview: some View {
-        let question = coordinator.currentQuestion
-        let referencedPage = coordinator.book.pages.first { $0.id == question.referencedPageID }
+        Group {
+            if let question = coordinator.currentQuestion {
+                let referencedPage = coordinator.book.pages.first { $0.id == question.referencedPageID }
 
-        return VStack(spacing: 10) {
-            topBar(title: "Think About the Story", showsReplay: true) {
-                coordinator.replayQuestion()
-            }
-
-            if let referencedPage {
-                StoryPageArtwork(page: referencedPage)
-                    .frame(maxWidth: 920)
-                    .frame(maxHeight: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 22))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 22)
-                            .stroke(.white, lineWidth: 5)
+                VStack(spacing: 10) {
+                    topBar(title: "Think About the Story", showsReplay: true) {
+                        coordinator.replayQuestion()
                     }
-            }
 
-            Text(question.prompt)
-                .font(.system(size: 26, weight: .bold, design: .rounded))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
-                .frame(maxWidth: 980)
+                    if let referencedPage {
+                        StoryPageArtwork(page: referencedPage, book: coordinator.book)
+                            .frame(maxWidth: 920)
+                            .frame(maxHeight: .infinity)
+                            .clipShape(RoundedRectangle(cornerRadius: 22))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 22)
+                                    .stroke(.white, lineWidth: 5)
+                            }
+                    }
 
-            if !coordinator.feedback.isEmpty && coordinator.phase != .reviewQuestion {
-                Text(coordinator.feedback)
-                    .font(.title3.weight(.semibold))
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
-                    .frame(maxWidth: 980)
-            }
+                    Text(question.prompt)
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
+                        .frame(maxWidth: 980)
 
-            HStack(spacing: 18) {
-                ForEach(question.choices) { choice in
-                    StoryChoiceCard(
-                        choice: choice,
-                        isSelected: coordinator.selectedChoiceID == choice.id,
-                        isCorrectAnswer: coordinator.correctChoiceID == choice.id,
-                        phase: coordinator.phase
-                    ) {
-                        coordinator.choose(choice)
+                    if !coordinator.feedback.isEmpty && coordinator.phase != .reviewQuestion {
+                        Text(coordinator.feedback)
+                            .font(.title3.weight(.semibold))
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
+                            .frame(maxWidth: 980)
+                    }
+
+                    HStack(spacing: 18) {
+                        ForEach(question.choices) { choice in
+                            StoryChoiceCard(
+                                choice: choice,
+                                isSelected: coordinator.selectedChoiceID == choice.id,
+                                isCorrectAnswer: coordinator.correctChoiceID == choice.id,
+                                phase: coordinator.phase
+                            ) {
+                                coordinator.choose(choice)
+                            }
+                        }
+                    }
+                    .frame(maxWidth: 900)
+
+                    if coordinator.phase == .reviewFeedback {
+                        Button("Continue") { coordinator.continueReview() }
+                            .buttonStyle(StoryPrimaryButtonStyle())
+                            .padding(.bottom, 4)
                     }
                 }
-            }
-            .frame(maxWidth: 900)
-
-            if coordinator.phase == .reviewFeedback {
-                Button("Continue") { coordinator.continueReview() }
-                    .buttonStyle(StoryPrimaryButtonStyle())
-                    .padding(.bottom, 4)
+                .padding(.horizontal, 22)
+                .padding(.vertical, 10)
+            } else {
+                malformedStory
             }
         }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 10)
     }
 
     private var reviewComplete: some View {
@@ -361,10 +462,24 @@ struct StoryTimeView: View {
             HStack(spacing: 16) {
                 Button("Read Again") { coordinator.startAgain() }
                     .buttonStyle(StoryPrimaryButtonStyle())
-                Button("Home") { appState.route = .home }
+                Button("Library") { appState.route = .storyLibrary }
                     .buttonStyle(.bordered)
             }
             .font(.title3.bold())
+        }
+        .padding(24)
+    }
+
+    private var malformedStory: some View {
+        VStack(spacing: 18) {
+            topBar(title: "Story unavailable")
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 72))
+                .foregroundStyle(.orange)
+            Text("This story is not ready yet.")
+                .font(.title.bold())
+            Button("Library") { appState.route = .storyLibrary }
+                .buttonStyle(StoryPrimaryButtonStyle())
         }
         .padding(24)
     }
@@ -375,8 +490,8 @@ struct StoryTimeView: View {
         replay: @escaping () -> Void = {}
     ) -> some View {
         HStack(spacing: 14) {
-            Button { appState.route = .home } label: {
-                Image(systemName: "house.fill")
+            Button { appState.route = .storyLibrary } label: {
+                Image(systemName: "books.vertical.fill")
                     .font(.title2.bold())
                     .frame(width: 64, height: 56)
             }
@@ -412,7 +527,7 @@ private struct StoryPageDots: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach(0..<count, id: .self) { index in
+            ForEach(0..<count, id: \.self) { index in
                 Capsule()
                     .fill(index == selectedIndex ? Color.orange : Color.gray.opacity(0.28))
                     .frame(width: index == selectedIndex ? 24 : 10, height: 8)
@@ -449,9 +564,7 @@ private struct StoryChoiceCard: View {
             .frame(minHeight: 126)
             .padding(.horizontal, 14)
             .background(
-                isSelected
-                    ? Color.yellow.opacity(0.34)
-                    : Color.white,
+                isSelected ? Color.yellow.opacity(0.34) : Color.white,
                 in: RoundedRectangle(cornerRadius: 22)
             )
             .overlay {
@@ -482,36 +595,36 @@ private struct StoryPrimaryButtonStyle: ButtonStyle {
 }
 
 struct StoryCoverArtwork: View {
-    let assetName: String
-    let title: String
+    let book: StoryBook
 
     var body: some View {
         Group {
-            if let image = StoryArtworkLoader.image(named: assetName) {
+            if let image = StoryArtworkLoader.image(book: book, assetName: book.coverAsset) {
                 Image(uiImage: image)
                     .resizable()
                     .interpolation(.high)
                     .scaledToFit()
             } else {
-                StoryPlaceholderArtwork(kind: .ranch, title: title)
+                StoryMissingArtwork(title: book.title)
             }
         }
-        .accessibilityLabel("Cover illustration for \(title)")
+        .accessibilityLabel("Cover illustration for \(book.title)")
     }
 }
 
 struct StoryPageArtwork: View {
     let page: StoryPage
+    let book: StoryBook
 
     var body: some View {
         Group {
-            if let image = StoryArtworkLoader.image(named: page.imageAsset) {
+            if let image = StoryArtworkLoader.image(book: book, assetName: page.imageAsset) {
                 Image(uiImage: image)
                     .resizable()
                     .interpolation(.high)
                     .scaledToFit()
             } else {
-                StoryPlaceholderArtwork(kind: page.artKind, title: page.title)
+                StoryMissingArtwork(title: page.title)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -521,92 +634,36 @@ struct StoryPageArtwork: View {
 }
 
 private enum StoryArtworkLoader {
-    private static let resourceDirectory = "Stories/cowboy-who-cried-tiger/v1"
-
-    static func image(named name: String) -> UIImage? {
-        if let url = Bundle.module.url(
-            forResource: name,
+    static func image(book: StoryBook, assetName: String) -> UIImage? {
+        let resourceDirectory = "Stories/\(book.id)/\(book.assetVersion)"
+        guard let url = Bundle.module.url(
+            forResource: assetName,
             withExtension: "png",
             subdirectory: resourceDirectory
-        ), let image = UIImage(contentsOfFile: url.path) {
-            return image
+        ) else {
+            return nil
         }
-
-        return UIImage(named: name, in: .module, compatibleWith: nil)
+        return UIImage(contentsOfFile: url.path)
     }
 }
 
-private struct StoryPlaceholderArtwork: View {
-    let kind: StoryArtKind
+private struct StoryMissingArtwork: View {
     let title: String
 
     var body: some View {
-        GeometryReader { proxy in
-            ZStack {
-                LinearGradient(
-                    colors: [skyColor, skyColor.opacity(0.50), Color(red: 0.80, green: 0.91, blue: 0.61)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-
-                Circle()
-                    .fill(.yellow.opacity(0.85))
-                    .frame(width: proxy.size.width * 0.13)
-                    .position(x: proxy.size.width * 0.82, y: proxy.size.height * 0.18)
-
-                RoundedRectangle(cornerRadius: 80)
-                    .fill(Color(red: 0.38, green: 0.67, blue: 0.32).opacity(0.92))
-                    .frame(height: proxy.size.height * 0.30)
-                    .position(x: proxy.size.width * 0.50, y: proxy.size.height * 0.88)
-
-                ForEach(0..<12, id: .self) { index in
-                    Capsule()
-                        .fill(Color(red: 0.21, green: 0.47, blue: 0.20).opacity(0.65))
-                        .frame(width: 5, height: 30 + CGFloat(index % 3) * 10)
-                        .rotationEffect(.degrees(Double(index % 2 == 0 ? -12 : 12)))
-                        .position(
-                            x: proxy.size.width * (0.05 + Double(index) * 0.08),
-                            y: proxy.size.height * (0.67 + Double(index % 2) * 0.08)
-                        )
-                }
-
-                VStack(spacing: 18) {
-                    Image(systemName: symbolName)
-                        .font(.system(size: min(proxy.size.width, proxy.size.height) * 0.20, weight: .bold))
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.20), radius: 5, y: 3)
-
-                    Text(title)
-                        .font(.system(size: min(proxy.size.width, proxy.size.height) * 0.055, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
-                        .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
-                        .padding(.horizontal, 30)
-                }
+        ZStack {
+            Color(red: 0.82, green: 0.91, blue: 0.95)
+            VStack(spacing: 12) {
+                Image(systemName: "photo")
+                    .font(.system(size: 48, weight: .bold))
+                Text("Illustration unavailable")
+                    .font(.headline)
+                Text(title)
+                    .font(.subheadline)
+                    .multilineTextAlignment(.center)
             }
-        }
-        .clipped()
-    }
-
-    private var skyColor: Color {
-        switch kind {
-        case .tiger, .quietField, .tracks: return Color(red: 0.92, green: 0.58, blue: 0.36)
-        case .warning, .distantCall: return Color(red: 0.44, green: 0.72, blue: 0.88)
-        case .sunrise: return Color(red: 0.97, green: 0.63, blue: 0.34)
-        default: return Color(red: 0.35, green: 0.73, blue: 0.88)
-        }
-    }
-
-    private var symbolName: String {
-        switch kind {
-        case .ranch: return "person.fill"
-        case .emptyGrass, .warning: return "wind"
-        case .ranchers: return "person.2.fill"
-        case .tiger: return "pawprint.fill"
-        case .distantCall: return "megaphone.fill"
-        case .quietField: return "hat.widebrim.fill"
-        case .tracks: return "shoeprints.fill"
-        case .sunrise: return "sunrise.fill"
+            .foregroundStyle(Color(red: 0.10, green: 0.24, blue: 0.28))
+            .padding()
         }
     }
 }
@@ -652,7 +709,7 @@ struct StoryParentDashboardView: View {
                         ForEach(storyProgress.sessions.prefix(8)) { session in
                             HStack {
                                 VStack(alignment: .leading) {
-                                    Text("The Cowboy Who Cried Tiger")
+                                    Text(StoryCatalog.book(id: session.storyID)?.title ?? "Unknown story")
                                         .font(.headline)
                                     Text(session.startedAt.formatted(date: .abbreviated, time: .shortened))
                                         .font(.subheadline)

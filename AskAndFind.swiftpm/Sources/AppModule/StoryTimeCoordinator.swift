@@ -27,17 +27,20 @@ final class StoryTimeCoordinator: ObservableObject {
     private var correctedAfterHelp = 0
     private var didAttemptCurrentQuestion = false
 
-    init(book: StoryBook, progress: StoryProgressStore) {
+    init(book: StoryBook, progress: StoryProgressStore, sessionToken: UUID) {
         self.book = book
         self.progress = progress
+        self.sessionID = sessionToken
     }
 
-    var currentPage: StoryPage {
-        book.pages[pageIndex]
+    var currentPage: StoryPage? {
+        guard book.pages.indices.contains(pageIndex) else { return nil }
+        return book.pages[pageIndex]
     }
 
-    var currentQuestion: StoryQuestion {
-        book.questions[questionIndex]
+    var currentQuestion: StoryQuestion? {
+        guard book.questions.indices.contains(questionIndex) else { return nil }
+        return book.questions[questionIndex]
     }
 
     var canGoBack: Bool {
@@ -45,13 +48,14 @@ final class StoryTimeCoordinator: ObservableObject {
     }
 
     func startReading() {
-        guard phase == .cover else { return }
+        guard phase == .cover, !book.pages.isEmpty else { return }
         pageIndex = 0
         phase = .reading
         speakCurrentPage(after: 0.25)
     }
 
     func startAgain() {
+        saveSessionIfNeeded()
         transition?.cancel()
         speech.stop()
         sessionID = UUID()
@@ -70,8 +74,10 @@ final class StoryTimeCoordinator: ObservableObject {
         wrongAttempts = 0
         feedback = ""
         didAttemptCurrentQuestion = false
-        phase = .reading
-        speakCurrentPage(after: 0.25)
+        phase = book.pages.isEmpty ? .cover : .reading
+        if phase == .reading {
+            speakCurrentPage(after: 0.25)
+        }
     }
 
     func goBack() {
@@ -81,7 +87,7 @@ final class StoryTimeCoordinator: ObservableObject {
     }
 
     func goForward() {
-        guard phase == .reading else { return }
+        guard phase == .reading, !book.pages.isEmpty else { return }
         if pageIndex < book.pages.count - 1 {
             pageIndex += 1
             speakCurrentPage(after: 0.25)
@@ -91,13 +97,15 @@ final class StoryTimeCoordinator: ObservableObject {
     }
 
     func replayCurrentPage() {
-        guard phase == .reading else { return }
+        guard phase == .reading, let page = currentPage else { return }
         narrationReplayCount += 1
-        speech.speak(currentPage.narrationTranscript)
+        speech.speak(page.narrationTranscript)
     }
 
     func finishStory() {
-        guard phase == .reading, pageIndex == book.pages.count - 1 else { return }
+        guard phase == .reading,
+              !book.pages.isEmpty,
+              pageIndex == book.pages.count - 1 else { return }
         transition?.cancel()
         speech.stop()
         storyCompleted = true
@@ -114,23 +122,27 @@ final class StoryTimeCoordinator: ObservableObject {
         correctChoiceID = nil
         wrongAttempts = 0
         feedback = ""
+        guard !book.questions.isEmpty else {
+            completeReview()
+            return
+        }
         phase = .reviewIntro
-        speech.speak("Let's think about the story together.")
+        speech.speak("Let’s think about the story together.")
         schedule(after: 1.1) { [weak self] in
             self?.askCurrentQuestion()
         }
     }
 
     func replayQuestion() {
-        guard phase == .reviewQuestion || phase == .reviewCorrection else { return }
-        speech.speak(questionAudio)
+        guard (phase == .reviewQuestion || phase == .reviewCorrection), let audio = questionAudio else { return }
+        speech.speak(audio)
     }
 
     func choose(_ choice: StoryChoice) {
-        guard phase == .reviewQuestion || phase == .reviewCorrection else { return }
+        guard (phase == .reviewQuestion || phase == .reviewCorrection),
+              let question = currentQuestion else { return }
 
         selectedChoiceID = choice.id
-        let question = currentQuestion
         let correctID = question.choices.first(where: { $0.isCorrect })?.id
         let isCorrect = choice.id == correctID
 
@@ -172,17 +184,19 @@ final class StoryTimeCoordinator: ObservableObject {
         saveSessionIfNeeded()
     }
 
-    private var questionAudio: String {
-        let choices = currentQuestion.choices.map(\.label).joined(separator: ", or ")
-        return "\(currentQuestion.prompt) \(choices)."
+    private var questionAudio: String? {
+        guard let question = currentQuestion else { return nil }
+        let choices = question.choices.map(\.label).joined(separator: ", or ")
+        return "\(question.prompt) \(choices)."
     }
 
     private func speakCurrentPage(after delay: TimeInterval) {
         transition?.cancel()
         speech.stop()
+        guard currentPage != nil else { return }
         let item = DispatchWorkItem { [weak self] in
-            guard let self else { return }
-            self.speech.speak(self.currentPage.narrationTranscript)
+            guard let self, let page = self.currentPage else { return }
+            self.speech.speak(page.narrationTranscript)
         }
         transition = item
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
@@ -190,13 +204,19 @@ final class StoryTimeCoordinator: ObservableObject {
 
     private func askCurrentQuestion() {
         transition?.cancel()
+        guard currentQuestion != nil else {
+            completeReview()
+            return
+        }
         selectedChoiceID = nil
         correctChoiceID = nil
         wrongAttempts = 0
         didAttemptCurrentQuestion = false
         questionsPresented = max(questionsPresented, questionIndex + 1)
         phase = .reviewQuestion
-        speech.speak(questionAudio)
+        if let audio = questionAudio {
+            speech.speak(audio)
+        }
     }
 
     private func completeReview() {
