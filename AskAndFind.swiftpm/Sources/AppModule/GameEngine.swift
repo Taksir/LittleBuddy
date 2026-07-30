@@ -38,7 +38,7 @@ final class GameEngine: ObservableObject {
 
     func start() {
         guard phase == .ready else { return }
-        feedback = "Let’s look carefully together."
+        feedback = "Let's look carefully together."
         speech.speak(feedback)
         schedule(after: 1.0) { [weak self] in self?.askCurrentTarget() }
     }
@@ -49,14 +49,10 @@ final class GameEngine: ObservableObject {
     }
 
     func handleTap(_ point: NormalizedPoint) {
-        guard phase == .awaitingTap || phase == .showingHint, let target = currentTarget else { return }
+        guard phase == .awaitingTap, let target = currentTarget else { return }
         transition?.cancel()
         tapCount += 1
-        if target.box.contains(point) {
-            completeTarget(target)
-        } else {
-            handleMiss(target)
-        }
+        target.box.contains(point) ? completeTarget(target) : handleMiss(target)
     }
 
     func stopAndSave() {
@@ -66,7 +62,10 @@ final class GameEngine: ObservableObject {
     }
 
     private func askCurrentTarget() {
-        guard let target = currentTarget else { completeSession(); return }
+        guard let target = currentTarget else {
+            completeSession()
+            return
+        }
         misses = 0
         highlightedTargetID = nil
         feedback = ""
@@ -77,19 +76,25 @@ final class GameEngine: ObservableObject {
 
     private func handleMiss(_ target: HiddenTarget) {
         misses += 1
+
         if misses >= 5 {
             phase = .demonstrating
             highlightedTargetID = target.id
             completedCount += 1
-            feedback = "This is the \(target.label). Let’s find another one."
+            feedback = "This is the \(target.label). Let's find another one."
             speech.speak(feedback)
-            schedule(after: 1.7) { [weak self] in self?.advance() }
+            schedule(after: 2.0) { [weak self] in self?.advance() }
         } else if misses == 3 {
             phase = .showingHint
-            highlightedTargetID = target.id
+            highlightedTargetID = nil
             hintCount += 1
-            feedback = "Let me help. Watch here."
+            feedback = "Here is what the \(target.label) looks like."
             speech.speak(feedback)
+            schedule(after: 2.4) { [weak self] in
+                guard let self, self.phase == .showingHint else { return }
+                self.feedback = "Now find the \(target.label) in the picture."
+                self.phase = .awaitingTap
+            }
         } else {
             phase = .respondingToMiss
             feedback = misses == 1 ? "Good looking. Try again." : "Take your time. Look all around."
@@ -103,7 +108,7 @@ final class GameEngine: ObservableObject {
         if misses < 3 { independentCount += 1 }
         phase = .celebrating
         highlightedTargetID = target.id
-        feedback = misses < 3 ? target.successLine : "That’s the \(target.label). Nice finding."
+        feedback = misses < 3 ? target.successLine : "That's the \(target.label). Nice finding."
         speech.speak(feedback)
         schedule(after: 1.2) { [weak self] in self?.advance() }
     }
@@ -139,7 +144,9 @@ final class GameEngine: ObservableObject {
 
     private func schedule(after delay: TimeInterval, action: @escaping @MainActor () -> Void) {
         transition?.cancel()
-        let item = DispatchWorkItem { Task { @MainActor in action() } }
+        let item = DispatchWorkItem {
+            Task { @MainActor in action() }
+        }
         transition = item
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
     }

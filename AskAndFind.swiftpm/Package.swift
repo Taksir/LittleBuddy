@@ -13,8 +13,8 @@ let package = Package(
             name: "Ask & Find",
             targets: ["AppModule"],
             bundleIdentifier: "com.taksir.askandfind.playground",
-            displayVersion: "0.2.0",
-            bundleVersion: "2",
+            displayVersion: "0.3.0",
+            bundleVersion: "3",
             supportedDeviceFamilies: [
                 .pad
             ],
@@ -27,7 +27,10 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AppModule",
-            path: "Sources/AppModule"
+            path: "Sources/AppModule",
+            resources: [
+                .process("Resources")
+            ]
         )
     ]
 )

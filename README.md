@@ -1,58 +1,57 @@
 # Ask & Find
 
 Ask & Find is an audio-first hidden-object learning game for children ages 3–5. The
-child hears one object request at a time, searches the picture, and taps the answer.
-Incorrect taps receive calm encouragement; the third miss reveals a gentle visual
-hint. A parent area summarizes local play and success data.
+child hears one object request at a time, searches a storybook picture, and taps the
+answer. Incorrect taps receive calm encouragement; after three misses, the requested
+object briefly appears as an enlarged picture cue. A parent area summarizes local
+play and success data.
 
-## Choose how to run it
-
-### Directly on an iPad — no Mac required
+## Run directly on an iPad — no Mac required
 
 Use the self-contained [AskAndFind.swiftpm](AskAndFind.swiftpm) package with Apple's
 free **Swift Playgrounds** app:
 
 1. Install **Swift Playgrounds** from the iPad App Store.
-2. Open `https://github.com/Taksir/Littlebuddy` in Safari.
+2. Open https://github.com/Taksir/Littlebuddy in Safari.
 3. Choose **Code → Download ZIP**.
 4. Extract the ZIP in the Files app.
 5. Open Swift Playgrounds and tap **Browse**.
-6. Open the extracted repository and select `AskAndFind.swiftpm`.
+6. Open the extracted repository and select AskAndFind.swiftpm.
 7. Wait for compilation, then tap **Run App**.
 
-This requires iPadOS 17 or newer. It runs full screen inside Swift Playgrounds. See
-[direct iPad setup](IPAD_DIRECT_SETUP.md) for the compact instructions.
+This requires iPadOS 17 or newer and runs full screen inside Swift Playgrounds. See
+[direct iPad setup](IPAD_DIRECT_SETUP.md) for compact instructions.
 
-### Native Xcode build on a Mac
+## Native Xcode build on a Mac
 
 The original SwiftUI/Xcode source remains available for simulator, device, and later
 App Store work. On a Mac:
 
-```bash
-git clone https://github.com/Taksir/Littlebuddy.git
-cd Littlebuddy
-brew install xcodegen
-xcodegen generate --spec XcodeGenRuntime.yml
-open AskAndFind.xcodeproj
-```
+    git clone https://github.com/Taksir/Littlebuddy.git
+    cd Littlebuddy
+    brew install xcodegen
+    xcodegen generate --spec XcodeGenRuntime.yml
+    open AskAndFind.xcodeproj
 
-In Xcode, select the `AskAndFind` target, choose an Apple signing team, replace the
-placeholder bundle identifier, select an iPad or iPad simulator, and press
-`Command-R`. Run tests with `Command-U`.
+In Xcode, select the AskAndFind target, choose an Apple signing team, replace the
+placeholder bundle identifier, select an iPad or iPad simulator, and press Command-R.
+Run tests with Command-U.
 
 ## How to play
 
 1. Launch the app and tap **Find Hidden Objects**.
 2. Listen to the spoken request, such as “Can you find the bunny?”
-3. Tap the matching object.
+3. Tap the matching object in the illustration.
 4. A correct tap gives gentle praise and advances to the next object.
-5. An incorrect tap gives encouragement and lets the child try again.
-6. After the third miss, a glowing halo and hand pointer show where to look.
-7. After five misses, the guide demonstrates the object and moves on.
+5. Incorrect taps give encouragement and allow another try.
+6. After the third miss, an enlarged crop of the requested object appears for about
+   two seconds, then disappears so the child can search again.
+7. After five misses, a tight marker shows the object's actual location and the guide
+   moves to the next object.
 8. Tap the speaker button to repeat the current request.
 
-Each session asks for 3–5 objects, one at a time. The app never displays the full
-target list.
+Each session asks for 3–5 objects, one at a time. Every scene contains ten annotated
+candidate objects, but the app never displays a target list.
 
 ## Parent area
 
@@ -63,33 +62,29 @@ reduced movement, or reset local progress.
 
 ## Current implementation
 
-- Ten demo scenes with ten normalized hit regions per scene.
+- Ten original 1536×1024 storybook illustrations bundled in the direct-iPad package.
+- One hundred hand-tuned normalized hit regions, ten per illustration.
 - One audio-requested target at a time.
-- Gentle feedback, visual hint after three misses, demonstration after five.
+- Gentle feedback, object-picture cue after three misses, precise help after five.
 - Local progress storage and parent summaries.
 - No microphone, advertising, analytics, child account, Gemini client, or API key.
 - Native Xcode project plus a self-contained Swift Playgrounds package.
 
-## Artwork status
-
-The repository does not yet contain final PNG, JPEG, or WebP scene artwork. The
-prototype renders code-generated backgrounds and emoji objects. These functional
-scenes test gameplay, coordinates, speech, hints, and progress tracking, but final
-release work must replace them with reviewed, rights-cleared storybook illustrations
-and approved narration.
+The direct-iPad Swift Playgrounds package contains the new artwork. The native Xcode
+implementation has not yet been synchronized with this artwork pass. Before public
+release, all images and narration should receive final human content, accessibility,
+and legal review.
 
 ## Repository structure
 
-```text
-AskAndFind.swiftpm/     Direct-iPad Swift Playgrounds app
-SpeechTherapy/          Native SwiftUI/Xcode source
-SpeechTherapyTests/     Native target unit tests
-docs/                   Product and architecture specifications
-XcodeGenRuntime.yml     Xcode project definition to use on a Mac
-```
+    AskAndFind.swiftpm/     Direct-iPad Swift Playgrounds app and scene artwork
+    SpeechTherapy/          Native SwiftUI/Xcode source
+    SpeechTherapyTests/     Native target unit tests
+    docs/                   Product and architecture specifications
+    XcodeGenRuntime.yml     Xcode project definition to use on a Mac
 
-The older `project.yml` and `XcodeGen.yml` files are design-history drafts. Use
-`XcodeGenRuntime.yml` for the native Mac/Xcode path.
+The older project.yml and XcodeGen.yml files are design-history drafts. Use
+XcodeGenRuntime.yml for the native Mac/Xcode path.
 
 ## Privacy and secrets
 

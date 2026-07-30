@@ -12,12 +12,32 @@ struct NormalizedBox: Hashable {
     let height: Double
     let touchExpansion: Double
 
+    var center: NormalizedPoint {
+        NormalizedPoint(x: x + width / 2, y: y + height / 2)
+    }
+
     func contains(_ point: NormalizedPoint) -> Bool {
         let left = max(0, x - touchExpansion)
         let top = max(0, y - touchExpansion)
         let right = min(1, x + width + touchExpansion)
         let bottom = min(1, y + height + touchExpansion)
         return point.x >= left && point.x <= right && point.y >= top && point.y <= bottom
+    }
+
+    func expandedForPreview() -> NormalizedBox {
+        let horizontalPadding = max(0.025, width * 0.35)
+        let verticalPadding = max(0.025, height * 0.35)
+        let left = max(0, x - horizontalPadding)
+        let top = max(0, y - verticalPadding)
+        let right = min(1, x + width + horizontalPadding)
+        let bottom = min(1, y + height + verticalPadding)
+        return NormalizedBox(
+            x: left,
+            y: top,
+            width: right - left,
+            height: bottom - top,
+            touchExpansion: 0
+        )
     }
 }
 
@@ -30,7 +50,6 @@ enum TargetDifficulty: String, Hashable {
 struct HiddenTarget: Identifiable, Hashable {
     let id: String
     let label: String
-    let symbol: String
     let difficulty: TargetDifficulty
     let box: NormalizedBox
 
@@ -54,6 +73,7 @@ enum SceneTheme: String, CaseIterable {
 struct StoryScene: Identifiable {
     let id: String
     let title: String
+    let imageName: String
     let theme: SceneTheme
     let targets: [HiddenTarget]
 }
