@@ -1,25 +1,13 @@
 import Foundation
 
-enum StoryArtKind: String, Codable, Hashable {
-    case ranch
-    case emptyGrass
-    case ranchers
-    case warning
-    case tiger
-    case distantCall
-    case quietField
-    case tracks
-    case sunrise
-}
-
 struct StoryPage: Identifiable, Codable, Hashable {
     let id: String
     let order: Int
+    let title: String
     let imageAsset: String
     let displayedText: String
     let narrationTranscript: String
     let altText: String
-    let artKind: StoryArtKind
 }
 
 struct StoryChoice: Identifiable, Codable, Hashable {
@@ -45,9 +33,37 @@ struct StoryBook: Identifiable, Codable, Hashable {
     let contentVersion: String
     let title: String
     let locale: String
+    let assetVersion: String
     let coverAsset: String
     let pages: [StoryPage]
     let questions: [StoryQuestion]
+
+    var isValid: Bool {
+        guard !id.isEmpty,
+              !title.isEmpty,
+              !locale.isEmpty,
+              !assetVersion.isEmpty,
+              !coverAsset.isEmpty,
+              pages.count == 10,
+              questions.count == 4 else {
+            return false
+        }
+
+        let pageIDs = Set(pages.map(\.id))
+        let questionIDs = Set(questions.map(\.id))
+        guard pageIDs.count == pages.count,
+              questionIDs.count == questions.count,
+              pages.allSatisfy({ !$0.title.isEmpty && !$0.imageAsset.isEmpty && !$0.narrationTranscript.isEmpty }),
+              questions.allSatisfy({
+                  $0.choices.count == 2 &&
+                  $0.choices.filter(\.isCorrect).count == 1 &&
+                  pageIDs.contains($0.referencedPageID)
+              }) else {
+            return false
+        }
+
+        return true
+    }
 }
 
 enum StoryTimePhase: Equatable {
