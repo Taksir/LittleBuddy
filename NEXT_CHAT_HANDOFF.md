@@ -6,70 +6,59 @@
 - Local workspace: D:\Google Drive Mythoss\Artificial Intelligence\local ollama models\SpeechTherapy
 - GitHub: https://github.com/Taksir/Littlebuddy
 - Target audience: children ages 3–5
-- First activity: audio-first hidden-object finding
-- Language: English only for version 1
+- Direct test target: AskAndFind.swiftpm in Swift Playgrounds on iPadOS 17+
 
-## Current product behavior
+## Current direct-iPad activities
 
-- The guide asks for one object at a time using spoken audio.
-- No target list is displayed.
-- Every scene has ten annotated objects; each session selects 3–5.
-- Correct taps receive gentle praise.
-- Incorrect taps receive calm encouragement.
-- On miss three, a cropped picture of the requested object pops up for 2.4 seconds,
-  disappears, and returns the child to searching. It does not show the location.
-- On miss five, a tight location marker demonstrates the object and advances.
-- Parent-gated progress shows sessions, time, completions, independent success,
-  hints, attempts, and recent sessions.
+### Find Hidden Objects
 
-## Direct iPad implementation
+- Ten illustrated scenes with ten normalized target boxes per scene.
+- One spoken target at a time; each session selects 3–5.
+- Temporary object crop after three misses.
+- Precise location marker and advance after five misses.
+- Existing local progress and parent metrics remain functional.
 
-- Package: AskAndFind.swiftpm/
-- Runs in Apple's Swift Playgrounds app on iPadOS 17 or newer.
-- Uses SwiftUI, AVSpeechSynthesizer, and UserDefaults.
-- Bundles ten original 1536×1024 PNG storybook scenes under
-  Sources/AppModule/Resources/Scenes/.
-- SceneCatalog.swift contains 100 hand-tuned normalized target boxes.
-- Views.swift renders real scene assets and crops the current target for hints.
-- GameEngine.swift controls the temporary cue and precise fifth-miss demonstration.
-- Setup instructions: IPAD_DIRECT_SETUP.md
+### Story Time
+
+- Home screen has a second activity card.
+- Story: The Cowboy Who Cried Tiger.
+- Cover plus ten catalog-backed pages and exact approved text.
+- Bidirectional swipe and arrow navigation.
+- Replayable AVSpeechSynthesizer narration with cancellation on page changes.
+- Four two-choice review questions using referenced story pages.
+- Wrong answers receive a specific spoken correction and guided correct choice.
+- Separate local StorySessionRecord storage under
+  askAndFind.playground.storySessions.v1.
+- Parent dashboard summarizes both activity stores and resets both together.
+- Cover and page-01 through page-10 are bundled as 1536 x 1024 PNG storybook art
+  under Sources/AppModule/Resources/Stories/cowboy-who-cried-tiger/v1/.
+- The code-generated artwork path remains only as a missing-asset fallback.
 
 ## Native Xcode implementation
 
-- Source: SpeechTherapy/
-- Tests: SpeechTherapyTests/
-- Project specification: XcodeGenRuntime.yml
-- Generate on a Mac with xcodegen generate --spec XcodeGenRuntime.yml.
-- Uses SwiftData for progress.
-- It has not yet been synchronized with the new artwork and hint implementation.
-
-## Privacy and secrets
-
-- The iPad clients do not call Gemini and contain no API key.
-- gem_api.txt exists outside the project and was never read or copied.
-- No microphone, child voice, camera, account, ads, analytics, or location.
-- .gitignore excludes common secret, Xcode, and Swift Package build artifacts.
+The native SpeechTherapy/Xcode target is not synchronized with this Story Time pass.
+The direct Swift Playgrounds package is the implementation target for this task.
 
 ## Verification status
 
-- Confirmed ten PNG resources and 100 target definitions.
-- Confirmed every scene image name resolves to a bundled PNG.
-- Confirmed no placeholder scene backdrop or emoji-object layer remains in the
-  direct-iPad package.
-- Windows has no Swift/Apple toolchain, so this version still requires compilation
-  and runtime testing in Swift Playgrounds on the iPad.
+- Confirmed the package contains the Story Time catalog, four questions, separate
+  reader/review state, progress store, manifest, and activity navigation.
+- Confirmed Swift source delimiter counts are balanced on Windows.
+- Confirmed the Story Time manifest parses as JSON and all eleven referenced PNG
+  assets are present at 1536 x 1024.
+- Windows does not have Swift or Apple SDKs, so final compilation must happen in
+  Swift Playgrounds on the iPad.
 
-## Recommended next actions
+## Recommended iPad test
 
-1. Review git status, commit, and push the new package and artwork.
-2. Download a fresh repository ZIP on the iPad.
-3. Open AskAndFind.swiftpm in Swift Playgrounds and tap Run App.
-4. Test all ten scenes over several sessions, especially third- and fifth-miss cues.
-5. Report any object whose tap box or crop is too loose or too tight.
+1. Commit and push the repository changes.
+2. Download a fresh ZIP on the iPad.
+3. Open AskAndFind.swiftpm in Swift Playgrounds.
+4. Tap Story Time.
+5. Test Read, forward navigation, backward navigation, replay, page 10 completion,
+   all four questions, wrong-answer correction, Read Again, Home, and parent reset.
+6. Regression-test Find Hidden Objects and its three-miss crop hint.
 
-## Prompt for the next chat
-
-    Read NEXT_CHAT_HANDOFF.md and inspect the current repository before acting.
-    Continue the Ask & Find project from its present state. I am testing
-    AskAndFind.swiftpm in Swift Playgrounds on my iPad. First check git status and
-    the actual package files.
+If Swift Playgrounds reports an error, copy the complete compiler message and the
+file/line number into the next task. Do not infer successful iPad compilation from
+Windows-only static checks.

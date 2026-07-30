@@ -92,6 +92,7 @@ enum GameplayPhase: Equatable {
 enum AppRoute: Equatable {
     case home
     case play(UUID)
+    case story(UUID)
     case parentGate(ParentDestination)
     case dashboard
     case settings

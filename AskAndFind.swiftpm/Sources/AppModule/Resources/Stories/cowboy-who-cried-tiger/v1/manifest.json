@@ -1,0 +1,15 @@
+{
+  "id": "cowboy-who-cried-tiger",
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "locale": "en-US",
+  "title": "The Cowboy Who Cried Tiger",
+  "assetStatus": "generated-storybook-art-bundled",
+  "pages": [
+    "page-01", "page-02", "page-03", "page-04", "page-05",
+    "page-06", "page-07", "page-08", "page-09", "page-10"
+  ],
+  "reviewQuestions": [
+    "q1-first-call", "q2-ranchers-feel", "q3-tiger-arrives", "q4-lesson"
+  ]
+}
