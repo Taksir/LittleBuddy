@@ -31,8 +31,15 @@ struct RootView: View {
                 targetLimit: appState.targetLimit,
                 progress: progress
             )
-        case .story(let token):
-            StoryTimeView(sessionToken: token, progress: storyProgress)
+        case .storyLibrary:
+            StoryLibraryView()
+        case .story(let storyID, let token):
+            if let book = StoryCatalog.book(id: storyID) {
+                StoryTimeView(book: book, sessionToken: token, progress: storyProgress)
+                    .id("\(storyID)-\(token.uuidString)")
+            } else {
+                ActivityHomeView()
+            }
         case .parentGate(let destination):
             ParentGateView(destination: destination)
         case .dashboard:
