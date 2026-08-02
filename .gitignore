@@ -12,5 +12,6 @@ xcuserdata/
 gem_api.txt
 *.key
 *.pem
-.env
 content-tools/staging/
+config.bat
+node_modules

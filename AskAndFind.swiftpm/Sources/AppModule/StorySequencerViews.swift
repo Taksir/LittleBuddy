@@ -32,8 +32,10 @@ struct StorySequencerLibraryView: View {
                         .foregroundStyle(Color(red: 0.08, green: 0.22, blue: 0.35))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
+                        .frame(minWidth: 80, minHeight: 60)
                         .background(.white.opacity(0.9), in: Capsule())
                     }
+                    .accessibilityLabel("Go to Home")
 
                     Spacer()
 
@@ -43,15 +45,16 @@ struct StorySequencerLibraryView: View {
 
                     Spacer()
 
-                    // Level Selector Pill
+                    // Level Selector Segmented Control
                     Picker("Level", selection: $selectedLevel) {
                         Text("3 Steps").tag(3)
                         Text("4 Steps").tag(4)
                         Text("5 Steps").tag(5)
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 220)
-                    .background(.white.opacity(0.8), in: RoundedRectangle(cornerRadius: 8))
+                    .frame(width: 240, height: 44)
+                    .background(.white.opacity(0.85), in: RoundedRectangle(cornerRadius: 10))
+                    .accessibilityLabel("Select Number of Sequence Steps")
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
@@ -68,7 +71,7 @@ struct StorySequencerLibraryView: View {
                         ],
                         spacing: 20
                     ) {
-                        ForEach(StoryCatalog.books) { book in
+                        ForEach(StoryCatalog.allBooks) { book in
                             Button {
                                 appState.route = .storySequencer(
                                     storyID: book.id,
@@ -79,6 +82,7 @@ struct StorySequencerLibraryView: View {
                                 SequencerBookCard(book: book, level: selectedLevel)
                             }
                             .buttonStyle(SequencerCardButtonStyle())
+                            .accessibilityLabel("Play \(book.title) with \(selectedLevel) steps")
                         }
                     }
                     .padding(24)
@@ -135,6 +139,7 @@ private struct SequencerBookCard: View {
             }
         }
         .padding(14)
+        .frame(minHeight: 220)
         .background(.white, in: RoundedRectangle(cornerRadius: 20))
         .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
     }
@@ -193,6 +198,7 @@ struct StorySequencerView: View {
                 // Top Bar
                 HStack {
                     Button {
+                        engine.stopSpeech()
                         appState.route = .storySequencerLibrary
                     } label: {
                         HStack(spacing: 6) {
@@ -203,9 +209,11 @@ struct StorySequencerView: View {
                         .foregroundStyle(Color(red: 0.08, green: 0.22, blue: 0.35))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
+                        .frame(minWidth: 80, minHeight: 60)
                         .background(.white, in: Capsule())
                         .shadow(radius: 2)
                     }
+                    .accessibilityLabel("Return to Story Sequencer Library")
 
                     Spacer()
 
@@ -228,9 +236,12 @@ struct StorySequencerView: View {
                             .foregroundStyle(Color(red: 0.08, green: 0.22, blue: 0.35))
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
+                            .frame(minWidth: 80, minHeight: 60)
                             .background(.white, in: Capsule())
                             .shadow(radius: 2)
                     }
+                    .accessibilityLabel("Reset board")
+                    .accessibilityHint("Resets cards in a new shuffled order.")
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
@@ -238,12 +249,12 @@ struct StorySequencerView: View {
                 // Status Banner / Feedback
                 Text(engine.feedbackMessage)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(engine.isIncorrectFeedback ? Color.red : Color(red: 0.05, green: 0.3, blue: 0.45))
+                    .foregroundStyle(engine.isIncorrectFeedback ? Color(red: 0.75, green: 0.15, blue: 0.15) : Color(red: 0.05, green: 0.3, blue: 0.45))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
                     .background(
                         engine.isIncorrectFeedback
-                        ? Color.red.opacity(0.12)
+                        ? Color.orange.opacity(0.15)
                         : Color.white.opacity(0.9),
                         in: RoundedRectangle(cornerRadius: 16)
                     )
@@ -264,10 +275,12 @@ struct StorySequencerView: View {
                                 slotIndex: slotIdx,
                                 card: engine.placedSlots[slotIdx],
                                 isCompleted: engine.isCompleted,
+                                isSelected: engine.selectedCard != nil && engine.placedSlots[slotIdx]?.id == engine.selectedCard?.id,
                                 totalSlots: engine.level,
                                 book: engine.book,
                                 onTap: { engine.tapSlot(slotIdx) },
-                                onAudioTap: { card in engine.playNarration(for: card) }
+                                onAudioTap: { card in engine.playNarration(for: card) },
+                                onRemoveTap: { engine.removeCardFromSlot(slotIdx) }
                             )
                         }
                     }
@@ -288,7 +301,7 @@ struct StorySequencerView: View {
                             Text("All cards placed! Checking order...")
                                 .font(.headline)
                                 .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, minHeight: 120)
+                                .frame(maxWidth: .infinity, minHeight: 145)
                                 .background(.white.opacity(0.6), in: RoundedRectangle(cornerRadius: 18))
                                 .padding(.horizontal, 24)
                         } else {
@@ -298,7 +311,7 @@ struct StorySequencerView: View {
                                     isSelected: engine.selectedCard == card,
                                     book: engine.book,
                                     onTap: { engine.tapPoolCard(card) },
-                                    onAudioTap: { engine.playNarration(for: card) }
+                                    onAudioTap: { card in engine.playNarration(for: card) }
                                 )
                             }
                         }
@@ -323,6 +336,7 @@ struct StorySequencerView: View {
 
                         HStack(spacing: 16) {
                             Button {
+                                engine.stopSpeech()
                                 appState.route = .storySequencerLibrary
                             } label: {
                                 Text("Choose Another Story")
@@ -330,6 +344,7 @@ struct StorySequencerView: View {
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 12)
+                                    .frame(minHeight: 60)
                                     .background(Color.blue, in: Capsule())
                             }
 
@@ -341,6 +356,7 @@ struct StorySequencerView: View {
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 12)
+                                    .frame(minHeight: 60)
                                     .background(Color.green, in: Capsule())
                             }
                         }
@@ -354,6 +370,9 @@ struct StorySequencerView: View {
                 }
             }
             .padding(.vertical, 12)
+            .onDisappear {
+                engine.stopSpeech()
+            }
         }
     }
 }
@@ -363,10 +382,12 @@ private struct SequenceSlotTile: View {
     let slotIndex: Int
     let card: SequencerCard?
     let isCompleted: Bool
+    let isSelected: Bool
     let totalSlots: Int
     let book: StoryBook
     let onTap: () -> Void
     let onAudioTap: (SequencerCard) -> Void
+    let onRemoveTap: () -> Void
 
     private var labelName: String {
         if totalSlots == 3 {
@@ -390,61 +411,90 @@ private struct SequenceSlotTile: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 18)
                             .stroke(
-                                isCompleted ? Color.green : (card == nil ? Color.blue.opacity(0.3) : Color.blue),
-                                style: StrokeStyle(lineWidth: isCompleted ? 4 : 2, dash: card == nil ? [6, 4] : [])
+                                isCompleted ? Color.green : (isSelected ? Color.orange : (card == nil ? Color.blue.opacity(0.3) : Color.blue)),
+                                style: StrokeStyle(lineWidth: (isCompleted || isSelected) ? 4 : 2, dash: card == nil ? [6, 4] : [])
                             )
                     )
 
                 if let card = card {
                     VStack(spacing: 4) {
-                        if let uiImage = loadCardImage(card: card, book: book) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: 110)
-                                .clipped()
-                                .cornerRadius(12)
-                        } else {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 110)
-                        }
+                        ZStack(alignment: .topTrailing) {
+                            Button {
+                                onTap()
+                            } label: {
+                                if let uiImage = loadCardImage(card: card, book: book) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(height: 105)
+                                        .clipped()
+                                        .cornerRadius(12)
+                                } else {
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(height: 105)
+                                }
+                            }
 
-                        HStack {
-                            Text(card.pageTitle)
-                                .font(.caption2.weight(.bold))
-                                .lineLimit(1)
-
-                            Spacer()
-
+                            // Speaker narration button isolated from card selection
                             Button {
                                 onAudioTap(card)
                             } label: {
                                 Image(systemName: "speaker.wave.2.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(.blue)
+                                    .font(.caption)
+                                    .padding(8)
+                                    .background(.white.opacity(0.95), in: Circle())
+                                    .shadow(radius: 2)
                             }
+                            .frame(width: 44, height: 44)
+                            .padding(4)
+                            .accessibilityLabel("Listen to narration for \(card.pageTitle)")
+                        }
+
+                        HStack {
+                            Button {
+                                onTap()
+                            } label: {
+                                Text(card.pageTitle)
+                                    .font(.caption2.weight(.bold))
+                                    .foregroundStyle(Color(red: 0.1, green: 0.2, blue: 0.3))
+                                    .lineLimit(1)
+                            }
+
+                            Spacer()
+
+                            Button {
+                                onRemoveTap()
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.gray)
+                            }
+                            .accessibilityLabel("Remove \(card.pageTitle) from slot")
                         }
                         .padding(.horizontal, 6)
                         .padding(.bottom, 4)
                     }
                     .padding(4)
                 } else {
-                    VStack(spacing: 6) {
-                        Image(systemName: "plus.square.dashed")
-                            .font(.largeTitle)
-                            .foregroundStyle(.blue.opacity(0.4))
-                        Text("Tap to place")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                    Button {
+                        onTap()
+                    } label: {
+                        VStack(spacing: 6) {
+                            Image(systemName: "plus.square.dashed")
+                                .font(.largeTitle)
+                                .foregroundStyle(.blue.opacity(0.4))
+                            Text("Tap to place")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
+                    .accessibilityLabel("Empty Slot \(slotIndex + 1). Tap to place selected card.")
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 145, maxHeight: 155)
+            .frame(maxWidth: .infinity, minHeight: 155, maxHeight: 165)
             .shadow(color: .black.opacity(card != nil ? 0.1 : 0.03), radius: 6, y: 3)
-            .onTapGesture {
-                onTap()
-            }
         }
     }
 }
@@ -460,40 +510,51 @@ private struct SequenceCardTile: View {
     var body: some View {
         VStack(spacing: 4) {
             ZStack(alignment: .topTrailing) {
-                if let uiImage = loadCardImage(card: card, book: book) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(height: 110)
-                        .clipped()
-                        .cornerRadius(12)
-                } else {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 110)
+                Button {
+                    onTap()
+                } label: {
+                    if let uiImage = loadCardImage(card: card, book: book) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 105)
+                            .clipped()
+                            .cornerRadius(12)
+                    } else {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 105)
+                    }
                 }
 
+                // Speaker narration button isolated from card selection
                 Button {
                     onAudioTap(card)
                 } label: {
                     Image(systemName: "speaker.wave.2.fill")
                         .font(.caption)
-                        .padding(6)
-                        .background(.white.opacity(0.9), in: Circle())
+                        .padding(8)
+                        .background(.white.opacity(0.95), in: Circle())
                         .shadow(radius: 2)
                 }
-                .padding(6)
+                .frame(width: 44, height: 44)
+                .padding(4)
+                .accessibilityLabel("Listen to narration for \(card.pageTitle)")
             }
 
-            Text(card.pageTitle)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(Color(red: 0.1, green: 0.2, blue: 0.3))
-                .lineLimit(1)
-                .padding(.horizontal, 4)
-                .padding(.bottom, 4)
+            Button {
+                onTap()
+            } label: {
+                Text(card.pageTitle)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Color(red: 0.1, green: 0.2, blue: 0.3))
+                    .lineLimit(1)
+                    .padding(.horizontal, 4)
+                    .padding(.bottom, 4)
+            }
         }
         .padding(4)
-        .frame(maxWidth: .infinity, minHeight: 145, maxHeight: 155)
+        .frame(maxWidth: .infinity, minHeight: 155, maxHeight: 165)
         .background(.white, in: RoundedRectangle(cornerRadius: 18))
         .overlay(
             RoundedRectangle(cornerRadius: 18)
@@ -502,9 +563,6 @@ private struct SequenceCardTile: View {
         .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
         .scaleEffect(isSelected ? 1.04 : 1.0)
         .animation(.easeOut(duration: 0.15), value: isSelected)
-        .onTapGesture {
-            onTap()
-        }
     }
 }
 

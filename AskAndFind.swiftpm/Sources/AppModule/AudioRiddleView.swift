@@ -21,6 +21,7 @@ struct AudioRiddleView: View {
                 // Top Header Bar
                 HStack {
                     Button {
+                        engine.stopSpeech()
                         appState.route = .home
                     } label: {
                         HStack(spacing: 6) {
@@ -31,9 +32,12 @@ struct AudioRiddleView: View {
                         .foregroundStyle(Color(red: 0.25, green: 0.1, blue: 0.4))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
+                        .frame(minWidth: 80, minHeight: 60)
                         .background(.white, in: Capsule())
                         .shadow(radius: 2)
                     }
+                    .accessibilityLabel("Go to Home")
+                    .accessibilityHint("Navigates back to the main activity menu.")
 
                     Spacer()
 
@@ -58,8 +62,10 @@ struct AudioRiddleView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
+                    .frame(minHeight: 60)
                     .background(.white, in: Capsule())
                     .shadow(radius: 2)
+                    .accessibilityLabel("\(engine.score) stars earned")
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
@@ -73,13 +79,15 @@ struct AudioRiddleView: View {
                             ZStack {
                                 Circle()
                                     .fill(Color.orange)
-                                    .frame(width: 54, height: 54)
+                                    .frame(width: 60, height: 60)
                                 Image(systemName: "speaker.wave.3.fill")
                                     .font(.title2)
                                     .foregroundStyle(.white)
                             }
                             .shadow(color: .orange.opacity(0.4), radius: 6, y: 3)
                         }
+                        .accessibilityLabel("Replay riddle audio clue")
+                        .accessibilityHint("Plays the spoken clue for the current riddle.")
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text(engine.currentRiddle?.prompt ?? "Who am I?")
@@ -91,8 +99,8 @@ struct AudioRiddleView: View {
                                 .font(.headline.weight(.semibold))
                                 .foregroundStyle(
                                     engine.isIncorrectFeedback
-                                    ? Color.red
-                                    : (engine.isCorrectFeedback ? Color.green : Color(red: 0.1, green: 0.2, blue: 0.35))
+                                    ? Color(red: 0.75, green: 0.15, blue: 0.15)
+                                    : (engine.isCorrectFeedback ? Color(red: 0.1, green: 0.5, blue: 0.2) : Color(red: 0.1, green: 0.2, blue: 0.35))
                                 )
                                 .lineLimit(3)
                         }
@@ -108,7 +116,7 @@ struct AudioRiddleView: View {
 
                 Spacer(minLength: 4)
 
-                // 2x2 Choice Grid
+                // 2x2 Choice Grid using Buttons
                 LazyVGrid(
                     columns: [
                         GridItem(.flexible(), spacing: 18),
@@ -117,13 +125,19 @@ struct AudioRiddleView: View {
                     spacing: 18
                 ) {
                     ForEach(engine.currentOptions) { option in
-                        RiddleOptionCard(
-                            option: option,
-                            isSelected: engine.selectedOptionID == option.id,
-                            isCorrect: engine.isCorrectFeedback && option.isCorrect,
-                            isIncorrect: engine.isIncorrectFeedback && engine.selectedOptionID == option.id,
-                            onTap: { engine.tapOption(option) }
-                        )
+                        Button {
+                            engine.tapOption(option)
+                        } label: {
+                            RiddleOptionCard(
+                                option: option,
+                                isSelected: engine.selectedOptionID == option.id,
+                                isCorrect: engine.isCorrectFeedback && option.isCorrect,
+                                isIncorrect: engine.isIncorrectFeedback && engine.selectedOptionID == option.id
+                            )
+                        }
+                        .buttonStyle(RiddleButtonStyle())
+                        .accessibilityLabel("Option: \(option.title)")
+                        .accessibilityHint("Tap to select this picture as the answer.")
                     }
                 }
                 .frame(maxWidth: 860)
@@ -145,15 +159,20 @@ struct AudioRiddleView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 32)
                         .padding(.vertical, 14)
+                        .frame(minHeight: 60)
                         .background(Color.green, in: Capsule())
                         .shadow(color: .green.opacity(0.4), radius: 8, y: 4)
                     }
                     .transition(.scale.combined(with: .opacity))
+                    .accessibilityLabel("Next Riddle")
                 }
 
                 Spacer()
             }
             .padding(.vertical, 12)
+            .onDisappear {
+                engine.stopSpeech()
+            }
 
             // Victory Session Modal
             if engine.isCompleted {
@@ -178,6 +197,7 @@ struct AudioRiddleView: View {
 
                         HStack(spacing: 16) {
                             Button {
+                                engine.stopSpeech()
                                 appState.route = .home
                             } label: {
                                 Text("Home")
@@ -185,6 +205,7 @@ struct AudioRiddleView: View {
                                     .foregroundStyle(Color(red: 0.2, green: 0.1, blue: 0.4))
                                     .padding(.horizontal, 24)
                                     .padding(.vertical, 12)
+                                    .frame(minHeight: 60)
                                     .background(Color.gray.opacity(0.15), in: Capsule())
                             }
 
@@ -196,6 +217,7 @@ struct AudioRiddleView: View {
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 28)
                                     .padding(.vertical, 12)
+                                    .frame(minHeight: 60)
                                     .background(Color.purple, in: Capsule())
                             }
                         }
@@ -211,13 +233,20 @@ struct AudioRiddleView: View {
     }
 }
 
+private struct RiddleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
 // MARK: - Riddle Option Choice Card
 private struct RiddleOptionCard: View {
     let option: AudioRiddleOption
     let isSelected: Bool
     let isCorrect: Bool
     let isIncorrect: Bool
-    let onTap: () -> Void
 
     var body: some View {
         VStack(spacing: 6) {
@@ -244,9 +273,9 @@ private struct RiddleOptionCard: View {
                         .background(.white, in: Circle())
                         .shadow(radius: 3)
                 } else if isIncorrect {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title)
-                        .foregroundStyle(.red)
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.orange)
                         .padding(8)
                         .background(.white, in: Circle())
                         .shadow(radius: 3)
@@ -261,20 +290,16 @@ private struct RiddleOptionCard: View {
                 .padding(.bottom, 6)
         }
         .padding(6)
+        .frame(minHeight: 160)
         .background(.white, in: RoundedRectangle(cornerRadius: 22))
         .overlay(
             RoundedRectangle(cornerRadius: 22)
                 .stroke(
-                    isCorrect ? Color.green : (isIncorrect ? Color.red : (isSelected ? Color.purple : Color.white)),
+                    isCorrect ? Color.green : (isIncorrect ? Color.orange : (isSelected ? Color.purple : Color.white)),
                     lineWidth: (isCorrect || isIncorrect || isSelected) ? 4 : 0
                 )
         )
         .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
-        .scaleEffect(isSelected ? 0.98 : 1.0)
-        .animation(.easeOut(duration: 0.15), value: isSelected)
-        .onTapGesture {
-            onTap()
-        }
     }
 
     private func loadOptionImage(option: AudioRiddleOption) -> UIImage? {
