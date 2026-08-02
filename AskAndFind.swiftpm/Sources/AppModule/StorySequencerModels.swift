@@ -16,7 +16,7 @@ enum SequencerSlotState: Equatable {
     case incorrect(SequencerCard)
 }
 
-struct SequencerRecord: Codable, Identifiable {
+struct StorySequencerRecord: Codable, Identifiable {
     let id: UUID
     let storyID: String
     let level: Int

@@ -693,23 +693,31 @@ struct StoryParentDashboardView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var progress: ProgressStore
     @EnvironmentObject private var storyProgress: StoryProgressStore
+    @EnvironmentObject private var audioRiddleProgress: AudioRiddleProgressStore
+    @EnvironmentObject private var sequencerProgress: StorySequencerProgressStore
     @State private var showReset = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text("Story Time")
-                        .font(.largeTitle.bold())
+                VStack(alignment: .leading, spacing: 22) {
+                    // Section 1: Hidden Objects
+                    Text("Find Hidden Objects")
+                        .font(.title2.bold())
 
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible()),
-                            GridItem(.flexible()),
-                            GridItem(.flexible())
-                        ],
-                        spacing: 12
-                    ) {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        StoryMetricCard(title: "Completed", value: "\(progress.totalCompleted)")
+                        StoryMetricCard(title: "Independent", value: percentage(progress.independentRate))
+                        StoryMetricCard(title: "Hints Used", value: "\(progress.totalHints)")
+                    }
+
+                    Divider()
+
+                    // Section 2: Story Time
+                    Text("Story Time")
+                        .font(.title2.bold())
+
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                         StoryMetricCard(title: "Started", value: "\(storyProgress.totalStarted)")
                         StoryMetricCard(title: "Finished", value: "\(storyProgress.totalCompleted)")
                         StoryMetricCard(title: "Reviews", value: "\(storyProgress.totalReviews)")
@@ -718,36 +726,67 @@ struct StoryParentDashboardView: View {
                         StoryMetricCard(title: "After help", value: "\(storyProgress.totalCorrected)")
                     }
 
+                    Divider()
+
+                    // Section 3: Story Sequencer
+                    Text("Story Sequencer")
+                        .font(.title2.bold())
+
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        StoryMetricCard(title: "Sessions", value: "\(sequencerProgress.totalSessions)")
+                        StoryMetricCard(title: "Completed", value: "\(sequencerProgress.totalCompleted)")
+                        StoryMetricCard(title: "Attempts", value: "\(sequencerProgress.totalAttempts)")
+                        StoryMetricCard(title: "Success Rate", value: percentage(sequencerProgress.completionRate))
+                        StoryMetricCard(title: "Assistance", value: "\(sequencerProgress.totalHints)")
+                    }
+
+                    Divider()
+
+                    // Section 4: Audio Riddles
+                    Text("Audio Riddles (\"Who Said That?\")")
+                        .font(.title2.bold())
+
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        StoryMetricCard(title: "Sessions", value: "\(audioRiddleProgress.totalSessions)")
+                        StoryMetricCard(title: "Questions", value: "\(audioRiddleProgress.totalQuestionsAttempted)")
+                        StoryMetricCard(title: "First Try", value: percentage(audioRiddleProgress.firstTryRate))
+                        StoryMetricCard(title: "Assistance", value: "\(audioRiddleProgress.totalHintsUsed)")
+                    }
+
+                    Divider()
+
+                    Text("Recent Story History")
+                        .font(.title2.bold())
+
                     if storyProgress.sessions.isEmpty {
-                        ContentUnavailableView(
-                            "No stories yet",
-                            systemImage: "book.closed",
-                            description: Text("Read a story and its listening review to see observations here.")
-                        )
+                        Text("No stories yet")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                            .padding(.vertical, 8)
                     } else {
-                        Text("Recent stories")
-                            .font(.title3.bold())
-                        ForEach(storyProgress.sessions.prefix(8)) { session in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(StoryCatalog.book(id: session.storyID)?.title ?? "Unknown story")
-                                        .font(.headline)
-                                    Text(session.startedAt.formatted(date: .abbreviated, time: .shortened))
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Text(session.reviewCompleted ? "reviewed" : "in progress")
+                        ForEach(storyProgress.sessions.prefix(10)) { session in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(StoryCatalog.allBooks.first(where: { $0.id == session.storyID })?.title ?? "Unknown Story")
+                                    .font(.headline)
+                                Text(session.startedAt.formatted(date: .abbreviated, time: .shortened))
+                                    .font(.caption)
                                     .foregroundStyle(.secondary)
+                                Text(session.storyCompleted ? "Completed" : "Incomplete")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(session.storyCompleted ? Color.green : Color.orange)
                             }
-                            .padding(14)
-                            .background(Color.gray.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.gray.opacity(0.10), in: RoundedRectangle(cornerRadius: 16))
                         }
                     }
+
+                    Divider()
 
                     Text("These observations describe play in this app. They are not a diagnosis or developmental assessment.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                        .padding(.top, 4)
                 }
                 .padding()
             }
@@ -769,6 +808,8 @@ struct StoryParentDashboardView: View {
                 Button("Reset", role: .destructive) {
                     progress.reset()
                     storyProgress.reset()
+                    audioRiddleProgress.reset()
+                    sequencerProgress.reset()
                 }
                 Button("Cancel", role: .cancel) { }
             }
