@@ -18,11 +18,23 @@ final class AudioRiddleEngine: ObservableObject {
     @Published var isCompleted: Bool = false
     @Published var hasAttemptedCurrent: Bool = false
 
+    private var sessionToken: UUID = UUID()
+    private var startTime: Date = Date()
+    private var hasSavedSession: Bool = false
+    private var questionsAttempted: Int = 0
+    private let speechGuide = SpeechGuide()
+
     init() {
         startNewSession()
     }
 
     func startNewSession() {
+        speechGuide.stop()
+        saveSessionIfNeeded()
+        self.sessionToken = UUID()
+        self.startTime = Date()
+        self.hasSavedSession = false
+        self.questionsAttempted = 0
         self.riddles = AudioRiddleCatalog.riddles.shuffled()
         self.currentRiddleIndex = 0
         self.score = 0
@@ -36,9 +48,13 @@ final class AudioRiddleEngine: ObservableObject {
     }
 
     private func loadCurrentRiddle() {
+        speechGuide.stop()
+
         guard currentRiddleIndex < riddles.count else {
             isCompleted = true
             feedbackMessage = "🎉 You solved all the Audio Riddles! Excellent listening!"
+            speechGuide.speak("You solved all the Audio Riddles! Excellent listening!")
+            saveSessionIfNeeded()
             return
         }
 
@@ -49,6 +65,9 @@ final class AudioRiddleEngine: ObservableObject {
         self.isIncorrectFeedback = false
         self.hasAttemptedCurrent = false
         self.feedbackMessage = "Listen to the clue: \"\(r.clueText)\""
+
+        // Speak audioTranscript automatically upon loading riddle
+        speechGuide.speak(r.audioTranscript)
     }
 
     var currentRiddle: AudioRiddle? {
@@ -59,6 +78,7 @@ final class AudioRiddleEngine: ObservableObject {
     func tapOption(_ option: AudioRiddleOption) {
         if isCorrectFeedback || isCompleted { return }
 
+        speechGuide.stop()
         selectedOptionID = option.id
 
         if option.isCorrect {
@@ -66,35 +86,70 @@ final class AudioRiddleEngine: ObservableObject {
             isIncorrectFeedback = false
             score += 1
             if !hasAttemptedCurrent {
+                questionsAttempted += 1
                 firstTryCount += 1
             }
-            feedbackMessage = "⭐ That's right! It's \(option.title)!"
-        } else {
             hasAttemptedCurrent = true
+            feedbackMessage = "⭐ That's right! It's \(option.title)!"
+            speechGuide.speak("That's right! It's \(option.title)!")
+        } else {
             isIncorrectFeedback = true
             isCorrectFeedback = false
-            hintsCount += 1
+            if !hasAttemptedCurrent {
+                questionsAttempted += 1
+                hintsCount += 1
+            }
+            hasAttemptedCurrent = true
             if let hint = currentRiddle?.hintText {
                 feedbackMessage = "Try again! Hint: \(hint)"
+                speechGuide.speak("Not quite! Try again.")
             } else {
                 feedbackMessage = "Not quite! Listen closely and try another picture."
+                speechGuide.speak("Not quite! Try again.")
             }
         }
     }
 
     func nextRiddle() {
+        speechGuide.stop()
         if currentRiddleIndex + 1 < riddles.count {
             currentRiddleIndex += 1
             loadCurrentRiddle()
         } else {
             isCompleted = true
             feedbackMessage = "🎉 You solved all the Audio Riddles! Fantastic job!"
+            speechGuide.speak("You solved all the Audio Riddles! Fantastic job!")
+            saveSessionIfNeeded()
         }
     }
 
     func playAudioPrompt() {
-        if let clue = currentRiddle?.clueText {
-            feedbackMessage = "🔊 Listening: \"\(clue)\""
+        speechGuide.stop()
+        if let transcript = currentRiddle?.audioTranscript {
+            feedbackMessage = "🔊 Listening: \"\(transcript)\""
+            speechGuide.speak(transcript)
         }
+    }
+
+    func stopSpeech() {
+        speechGuide.stop()
+        saveSessionIfNeeded()
+    }
+
+    func saveSessionIfNeeded() {
+        guard !hasSavedSession else { return }
+        guard questionsAttempted > 0 else { return }
+
+        hasSavedSession = true
+        let duration = max(1, Int(Date().timeIntervalSince(startTime)))
+        let record = AudioRiddleRecord(
+            id: sessionToken,
+            date: Date(),
+            totalQuestions: questionsAttempted,
+            firstTryCorrect: firstTryCount,
+            hintsUsed: hintsCount,
+            durationSeconds: duration
+        )
+        AudioRiddleProgressStore.shared.add(record)
     }
 }

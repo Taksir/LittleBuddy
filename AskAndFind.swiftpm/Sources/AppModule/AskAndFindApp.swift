@@ -5,6 +5,22 @@ struct AskAndFindPlaygroundApp: App {
     @StateObject private var appState = AppState()
     @StateObject private var progress = ProgressStore()
     @StateObject private var storyProgress = StoryProgressStore()
+    @StateObject private var audioRiddleProgress = AudioRiddleProgressStore.shared
+    @StateObject private var sequencerProgress = StorySequencerProgressStore.shared
+
+    init() {
+        #if DEBUG
+        if !SceneCatalog.validationIssues.isEmpty {
+            assertionFailure("SceneCatalog validation issues: \(SceneCatalog.validationIssues)")
+        }
+        if !StoryCatalog.validationIssues.isEmpty {
+            assertionFailure("StoryCatalog validation issues: \(StoryCatalog.validationIssues)")
+        }
+        if !AudioRiddleCatalog.validationIssues.isEmpty {
+            assertionFailure("AudioRiddleCatalog validation issues: \(AudioRiddleCatalog.validationIssues)")
+        }
+        #endif
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -12,6 +28,8 @@ struct AskAndFindPlaygroundApp: App {
                 .environmentObject(appState)
                 .environmentObject(progress)
                 .environmentObject(storyProgress)
+                .environmentObject(audioRiddleProgress)
+                .environmentObject(sequencerProgress)
         }
     }
 }
