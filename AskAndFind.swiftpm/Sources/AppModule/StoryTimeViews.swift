@@ -29,8 +29,7 @@ struct ActivityHomeView: View {
 
                     LazyVGrid(
                         columns: [
-                            GridItem(.flexible(), spacing: 18),
-                            GridItem(.flexible(), spacing: 18)
+                            GridItem(.adaptive(minimum: 230, maximum: 380), spacing: 18)
                         ],
                         spacing: 18
                     ) {
@@ -53,8 +52,28 @@ struct ActivityHomeView: View {
                             )
                         }
                         .buttonStyle(ActivityCardButtonStyle())
+
+                        Button { appState.route = .storySequencerLibrary } label: {
+                            ActivityCard(
+                                title: "Story Sequencer",
+                                subtitle: "Put the story in order!",
+                                symbol: "arrow.triangle.2.circlepath",
+                                colors: [.white, Color(red: 0.82, green: 0.94, blue: 0.92)]
+                            )
+                        }
+                        .buttonStyle(ActivityCardButtonStyle())
+
+                        Button { appState.route = .audioRiddles } label: {
+                            ActivityCard(
+                                title: "Audio Riddles",
+                                subtitle: "Who said that?",
+                                symbol: "questionmark.bubble.fill",
+                                colors: [.white, Color(red: 0.94, green: 0.88, blue: 1.0)]
+                            )
+                        }
+                        .buttonStyle(ActivityCardButtonStyle())
                     }
-                    .frame(maxWidth: 820)
+                    .frame(maxWidth: 860)
 
                     HStack {
                         Spacer()

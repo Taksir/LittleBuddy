@@ -104,6 +104,9 @@ enum AppRoute: Equatable {
     case play(UUID)
     case storyLibrary
     case story(storyID: String, sessionToken: UUID)
+    case storySequencerLibrary
+    case storySequencer(storyID: String, level: Int, sessionToken: UUID)
+    case audioRiddles
     case parentGate(ParentDestination)
     case dashboard
     case settings

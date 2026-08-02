@@ -40,6 +40,17 @@ struct RootView: View {
             } else {
                 ActivityHomeView()
             }
+        case .storySequencerLibrary:
+            StorySequencerLibraryView()
+        case .storySequencer(let storyID, let level, let token):
+            if let book = StoryCatalog.book(id: storyID) {
+                StorySequencerView(book: book, level: level, sessionToken: token)
+                    .id("sequencer-\(storyID)-\(token.uuidString)")
+            } else {
+                StorySequencerLibraryView()
+            }
+        case .audioRiddles:
+            AudioRiddleView()
         case .parentGate(let destination):
             ParentGateView(destination: destination)
         case .dashboard:
