@@ -68,6 +68,16 @@ enum SceneTheme: String, CaseIterable {
     case snowyPark
     case reef
     case market
+    case playroomBedroom
+    case riverAdventure
+    case nurseryPlayroom
+    case playroomCorner
+    case storyClassroom
+    case woodlandClearing
+    case bustlingCity
+    case playfulChase
+    case starryNightForest
+    case autumnPark
 }
 
 struct StoryScene: Identifiable {

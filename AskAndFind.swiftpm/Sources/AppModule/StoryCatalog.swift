@@ -161,11 +161,134 @@ enum StoryCatalog {
         ]
     )
 
+    static let antAndDove = StoryBook(
+        id: "ant-and-dove",
+        schemaVersion: 1,
+        contentVersion: "1.0.0",
+        title: "The Ant and the Dove",
+        locale: "en-US",
+        assetVersion: "v1",
+        coverAsset: "cover",
+        pages: [
+            page(1, "A Splashing Ant", "A tiny ant slipped on a muddy riverbank and fell into the swirling river.", "A tiny ant slipping into swirling river water near a muddy bank."),
+            page(2, "Swept Away", "The strong water spun the ant around as she tried to stay floating.", "The ant struggling to float in rushing blue river water."),
+            page(3, "A Watching Dove", "High in a green tree, a kind white dove saw the ant and wanted to help.", "A plump white dove watching the ant from a leafy tree branch."),
+            page(4, "The Floating Leaf", "The clever dove picked a green leaf with her beak and dropped it down to the water.", "The dove dropping a green leaf down toward the river."),
+            page(5, "Safe Ashore", "The ant climbed onto the leaf and floated safely to dry grass.", "The ant floating safely on the green leaf to dry shore."),
+            page(6, "The Hunter", "The next morning, a hunter crept near the tree with a big net aimed at the dove.", "A hunter with a big net creeping toward the sleeping dove."),
+            page(7, "Ready to Help", "The thankful ant saw the hunter and ran quickly across the ground.", "The ant sprinting across the grass toward the hunter."),
+            page(8, "A Tiny Bite", "The ant bit the hunter’s heel as hard as she could.", "The ant biting the hunter's bare heel on the grass."),
+            page(9, "Surprise!", "The hunter shouted 'Ouch!' and dropped his big net.", "The hunter jumping up, yelling ouch, and dropping his net."),
+            page(10, "Flying Free", "The dove woke up, flapped her wings, and flew safely into the blue sky.", "The white dove flying safely into the bright sky above.")
+        ],
+        questions: [
+            question("q1-leaf-drop", "page-04", "What did the dove drop into the water to help the ant?", [
+                choice("green-leaf", "A green leaf", "leaf.fill", true),
+                choice("small-pebble", "A small pebble", "circle.fill", false)
+            ], "That’s right! The dove dropped a green leaf into the river.", "Look at the dove. She dropped a green leaf to save the ant."),
+            question("q2-safe-shore", "page-05", "How did the ant get safely back to shore?", [
+                choice("floated-leaf", "Floated on the leaf", "leaf.fill", true),
+                choice("swam-fast", "Swam across", "figure.pool.swim", false)
+            ], "Yes! The ant climbed onto the leaf and floated to shore.", "The ant climbed on the floating leaf to reach dry grass."),
+            question("q3-stop-hunter", "page-08", "How did the ant stop the hunter?", [
+                choice("bit-heel", "Bit his heel", "pawprint.fill", true),
+                choice("called-help", "Called for help", "megaphone.fill", false)
+            ], "Yes! The ant bit the hunter’s heel as hard as she could.", "Look at the hunter's foot. The ant bit his heel to stop him."),
+            question("q4-moral-kindness", "page-10", "What does this story teach us about kindness?", [
+                choice("kindness-helps", "When you are kind, others will help you too", "heart.fill", true),
+                choice("birds-leaves", "Birds like green leaves", "leaf.circle.fill", false)
+            ], "That’s right! Being kind helps everyone.", "The ant saved the dove because the dove helped her first. Kindness matters!")
+        ]
+    )
+
+    static let antAndGrasshopper = StoryBook(
+        id: "ant-and-grasshopper",
+        schemaVersion: 1,
+        contentVersion: "1.0.0",
+        title: "The Ant and the Grasshopper",
+        locale: "en-US",
+        assetVersion: "v1",
+        coverAsset: "cover",
+        pages: [
+            page(1, "Busy Ants", "All summer long, busy ants worked together to carry seeds and food to their anthill.", "Line of ants carrying heavy seeds toward their anthill."),
+            page(2, "Playing Music", "A bright green grasshopper sat on a flower, playing his fiddle in the warm sun.", "A green grasshopper playing a tiny fiddle on a flower."),
+            page(3, "Summer Days", "While the ants marched and gathered food, the grasshopper hopped and sang all day.", "Ants marching on the left while the grasshopper plays on the right."),
+            page(4, "Hard Work", "One ant worked very hard pulling a heavy piece of corn across the grass.", "A single ant pulling a large piece of corn over a twig."),
+            page(5, "Resting", "The grasshopper rested lazily and watched the hard-working ant trudge by.", "The grasshopper lounging on a dandelion while watching the ant."),
+            page(6, "Autumn Leaves", "When autumn came, orange leaves fell. The ants gathered the last food into their warm home.", "Fallen autumn leaves around the anthill as ants carry food inside."),
+            page(7, "First Frost", "Cold frost covered the grass. The ants were safe inside, and the music stopped.", "Frosty grass with no ants in sight and a discarded fiddle."),
+            page(8, "Cold and Hungry", "The grasshopper shivered in the snow, wishing he had saved food for winter.", "The grasshopper shivering in snow next to a frozen acorn."),
+            page(9, "Knocking for Help", "The grasshopper knocked at the anthill door to ask the ants for help.", "The grasshopper shivering and knocking at the anthill door."),
+            page(10, "Warm and Safe", "Inside, the ants were cozy and fed. Planning ahead helps us stay safe and warm.", "Inside the cozy anthill with stacked food and warm fire.")
+        ],
+        questions: [
+            question("q1-summer-ants", "page-01", "What were the ants doing during the summer?", [
+                choice("gathering-food", "Gathering food", "leaf.fill", true),
+                choice("sleeping-grass", "Sleeping in the grass", "moon.zzz.fill", false)
+            ], "That’s right! The ants worked together to gather food all summer.", "Look at the ants in line. They were carrying seeds into their home."),
+            question("q2-grasshopper-music", "page-02", "What did the grasshopper do all summer?", [
+                choice("played-fiddle", "Played his fiddle", "music.note", true),
+                choice("built-house", "Built a house", "house.fill", false)
+            ], "Yes! The grasshopper sat on a flower and played his fiddle.", "Look at the green grasshopper. He played music in the sun."),
+            question("q3-hungry-winter", "page-08", "Why was the grasshopper hungry in the winter?", [
+                choice("no-food-saved", "He didn't save any food", "xmark.circle.fill", true),
+                choice("lost-fiddle", "He lost his fiddle", "music.note.slash", false)
+            ], "Yes! He sang all summer and did not save food for winter.", "The grasshopper did not save food when it was sunny, so he had none in winter."),
+            question("q4-plan-ahead", "page-10", "What lesson does the story teach us?", [
+                choice("plan-ahead", "Work and plan ahead for the future", "checkmark.seal.fill", true),
+                choice("only-play", "Only play music every day", "sparkles", false)
+            ], "That’s right! Planning ahead keeps us safe and prepared.", "The ants were warm and safe because they worked ahead. It is important to plan!")
+        ]
+    )
+
+    static let crowAndPitcher = StoryBook(
+        id: "crow-and-pitcher",
+        schemaVersion: 1,
+        contentVersion: "1.0.0",
+        title: "The Crow and the Pitcher",
+        locale: "en-US",
+        assetVersion: "v1",
+        coverAsset: "cover",
+        pages: [
+            page(1, "A Thirsty Crow", "On a hot summer day, a thirsty crow searched for water across the dry land.", "A crow flying under a blazing hot sun looking for water."),
+            page(2, "Finding a Pitcher", "She spotted a tall glass pitcher standing on a table with water inside.", "A tall glass pitcher with water inside standing on a wooden table."),
+            page(3, "Out of Reach", "The water was at the bottom, but the pitcher’s neck was too narrow for her beak.", "The crow peering into the narrow neck of the pitcher."),
+            page(4, "Trying Hard", "She pushed her head down, but the water was still out of reach.", "The crow trying to reach down into the pitcher."),
+            page(5, "Too Heavy", "The crow tried to tip the heavy pitcher over, but it would not budge.", "The crow pushing against the heavy glass pitcher."),
+            page(6, "Taking a Rest", "Tired and thirsty, she sat beside the pitcher to think.", "The crow resting thoughtfully on the ground near the table."),
+            page(7, "A Bright Idea", "She saw small pebbles on the ground and came up with a clever plan.", "The crow looking at a pile of pebbles near the garden path."),
+            page(8, "One by One", "The crow picked up a pebble and dropped it into the pitcher.", "The crow dropping a pebble into the top of the pitcher."),
+            page(9, "Water Rising", "Pebble by pebble, the stones filled the bottom and pushed the water higher.", "Pebbles filling the bottom of the pitcher as water rises to the top."),
+            page(10, "A Cool Drink", "At last, the water reached the top, and the clever crow drank her fill.", "The happy crow drinking water from the brim of the pitcher.")
+        ],
+        questions: [
+            question("q1-narrow-neck", "page-03", "Why couldn't the crow drink water at first?", [
+                choice("neck-narrow", "The pitcher neck was too narrow", "arrow.up.and.down", true),
+                choice("pitcher-empty", "The pitcher was empty", "xmark.bin", false)
+            ], "That’s right! The neck was too narrow for her beak to reach the water.", "Look inside the pitcher. The water was deep down and the neck was too narrow."),
+            question("q2-pebble-plan", "page-07", "What did the crow spot on the ground?", [
+                choice("small-pebbles", "Small pebbles", "circle.grid.cross.fill", true),
+                choice("big-sticks", "Big sticks", "line.diagonal", false)
+            ], "Yes! The crow saw small pebbles on the garden path.", "The crow saw small pebbles that she could pick up with her beak."),
+            question("q3-water-rose", "page-09", "What happened when the crow dropped pebbles in?", [
+                choice("water-rose", "The water rose higher", "arrow.up.circle.fill", true),
+                choice("pitcher-broke", "The pitcher broke", "exclamationmark.triangle.fill", false)
+            ], "Yes! Each pebble pushed the water higher to the top.", "Dropping pebbles inside made the water rise up so the crow could reach it."),
+            question("q4-clever-crow", "page-10", "What does the crow’s story teach us?", [
+                choice("clever-thinking", "Clever thinking and patience solve hard problems", "brain.head.profile", true),
+                choice("give-up-easy", "Give up when things are hard", "hand.raised.fill", false)
+            ], "That’s right! Patience and clever thinking solve hard problems.", "The crow did not give up. She thought of a smart plan and solved her problem!")
+        ]
+    )
+
     static let allBooks: [StoryBook] = [
         cowboyWhoCriedTiger,
         tortoiseAndHare,
         lionAndMouse,
-        foxAndGrapes
+        foxAndGrapes,
+        antAndDove,
+        antAndGrasshopper,
+        crowAndPitcher
     ]
 
     static func book(id: String) -> StoryBook? {

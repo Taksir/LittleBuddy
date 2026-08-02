@@ -44,4 +44,14 @@ final class AskAndFindTests: XCTestCase {
         XCTAssertEqual(summary.assistedSuccessRate, 0.5)
         XCTAssertEqual(summary.hintRate, 0.5)
     }
+
+    func testSceneCatalogValidation() {
+        XCTAssertEqual(SceneCatalog.scenes.count, 20, "SceneCatalog must contain 20 total scenes.")
+        XCTAssertTrue(SceneCatalog.validationIssues.isEmpty, "SceneCatalog validation issues: \(SceneCatalog.validationIssues)")
+    }
+
+    func testStoryCatalogValidation() {
+        XCTAssertEqual(StoryCatalog.allBooks.count, 7, "StoryCatalog must contain 7 total storybooks.")
+        XCTAssertTrue(StoryCatalog.validationIssues.isEmpty, "StoryCatalog validation issues: \(StoryCatalog.validationIssues)")
+    }
 }

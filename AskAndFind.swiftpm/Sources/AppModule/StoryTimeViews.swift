@@ -636,14 +636,16 @@ struct StoryPageArtwork: View {
 private enum StoryArtworkLoader {
     static func image(book: StoryBook, assetName: String) -> UIImage? {
         let resourceDirectory = "Stories/\(book.id)/\(book.assetVersion)"
-        guard let url = Bundle.module.url(
-            forResource: assetName,
-            withExtension: "png",
-            subdirectory: resourceDirectory
-        ) else {
-            return nil
+        for ext in ["png", "jpg", "jpeg"] {
+            if let url = Bundle.module.url(
+                forResource: assetName,
+                withExtension: ext,
+                subdirectory: resourceDirectory
+            ) {
+                return UIImage(contentsOfFile: url.path)
+            }
         }
-        return UIImage(contentsOfFile: url.path)
+        return nil
     }
 }
 
