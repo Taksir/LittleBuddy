@@ -51,7 +51,7 @@ final class AskAndFindTests: XCTestCase {
     }
 
     func testStoryCatalogValidation() {
-        XCTAssertEqual(StoryCatalog.allBooks.count, 7, "StoryCatalog must contain 7 total storybooks.")
+        XCTAssertEqual(StoryCatalog.allBooks.count, 17, "StoryCatalog must contain 17 total storybooks.")
         XCTAssertTrue(StoryCatalog.validationIssues.isEmpty, "StoryCatalog validation issues: \(StoryCatalog.validationIssues)")
     }
 }
